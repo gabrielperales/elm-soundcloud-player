@@ -149,11 +149,20 @@ renderPlayingSong is_playing elapsed_time playing =
             time
                 |> Date.fromTime
                 |> format "%M:%S"
+
+        cover url =
+            case url of
+                Just img_src ->
+                    img [ src img_src ] []
+
+                _ ->
+                    text ""
     in
         case playing of
             Just song ->
                 div []
-                    [ h3 [] [ text ("Playing: " ++ song.title) ]
+                    [ cover song.artwork_url
+                    , h3 [] [ text ("Playing: " ++ song.title) ]
                     , p [] [ text (displayFormat elapsed_time ++ "/" ++ displayFormat song.duration) ]
                     , div []
                         [ if is_playing then
