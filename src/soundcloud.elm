@@ -87,9 +87,16 @@ update msg model =
             ( { model | query = input }, Cmd.none )
 
         Play song ->
-            ( { model | current_song = Just song, is_playing = True }
-            , playSong (song.stream_url ++ "?client_id=" ++ client_id)
-            )
+            let
+                time =
+                    if (Just song /= model.current_song) then
+                        0
+                    else
+                        model.elapsed_time
+            in
+                ( { model | current_song = Just song, is_playing = True, elapsed_time = time }
+                , playSong (song.stream_url ++ "?client_id=" ++ client_id)
+                )
 
         Pause ->
             ( { model | is_playing = False }, pauseSong "" )
