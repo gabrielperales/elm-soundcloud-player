@@ -4,16 +4,15 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode as Decode exposing (Decoder, decodeString, field, string, int, at)
+import Json.Decode as Decode exposing (Decoder, decodeString, field, oneOf, string, int, float, at, null)
+import Time exposing (..)
+import Date
+import Date.Format exposing (format)
 
 
 client_id : String
 client_id =
     "eb6df903547f8123e3cb79e5429a0999"
-
-
-
---"80bdab0ecb2b65b57e1629f1b65cb3f1"
 
 
 port playSong : String -> Cmd msg
@@ -44,20 +43,22 @@ type alias Model =
     , songs : List Song
     , current_song : Maybe Song
     , is_playing : Bool
+    , elapsed_time : Time
     }
 
 
 type alias Song =
     { id : Int
     , title : String
-    , duration : Int
+    , artwork_url : Maybe String
+    , duration : Time
     , stream_url : String
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" [] Nothing False
+    ( Model "" [] Nothing False 0
     , Cmd.none
     )
 
@@ -73,6 +74,7 @@ type Msg
     | Stop
     | Pause
     | SongList (Result Http.Error (List Song))
+    | Tick
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -93,13 +95,21 @@ update msg model =
             ( { model | is_playing = False }, pauseSong "" )
 
         Stop ->
-            ( { model | current_song = Nothing, is_playing = False }, stopSong "" )
+            ( { model | current_song = Nothing, is_playing = False, elapsed_time = 0 }, stopSong "" )
 
         SongList (Ok songs) ->
             ( { model | songs = songs }, Cmd.none )
 
         SongList (Err _) ->
             ( model, Cmd.none )
+
+        Tick ->
+            let
+                new_time : Time
+                new_time =
+                    ((+) second) model.elapsed_time
+            in
+                ( { model | elapsed_time = new_time }, Cmd.none )
 
 
 
@@ -116,29 +126,36 @@ view model =
             , audio [] []
             ]
         , br [] []
-        , renderPlayingSong model.is_playing model.current_song
+        , renderPlayingSong model.is_playing model.elapsed_time model.current_song
         , br [] []
         , renderSongs model.songs
         ]
 
 
-renderPlayingSong : Bool -> Maybe Song -> Html Msg
-renderPlayingSong is_playing playing =
-    case playing of
-        Just song ->
-            div []
-                [ h3 [] [ text ("Playing: " ++ song.title) ]
-                , div []
-                    [ if is_playing then
-                        button [ onClick Pause ] [ text "Pause" ]
-                      else
-                        button [ onClick (Play song) ] [ text "Play" ]
-                    , button [ onClick Stop ] [ text "Stop" ]
+renderPlayingSong : Bool -> Time -> Maybe Song -> Html Msg
+renderPlayingSong is_playing elapsed_time playing =
+    let
+        displayFormat time =
+            time
+                |> Date.fromTime
+                |> format "%M:%S"
+    in
+        case playing of
+            Just song ->
+                div []
+                    [ h3 [] [ text ("Playing: " ++ song.title) ]
+                    , p [] [ text (displayFormat elapsed_time ++ "/" ++ displayFormat song.duration) ]
+                    , div []
+                        [ if is_playing then
+                            button [ onClick Pause ] [ text "Pause" ]
+                          else
+                            button [ onClick (Play song) ] [ text "Play" ]
+                        , button [ onClick Stop ] [ text "Stop" ]
+                        ]
                     ]
-                ]
 
-        Nothing ->
-            text ""
+            Nothing ->
+                text ""
 
 
 renderSongs : List Song -> Html Msg
@@ -156,7 +173,12 @@ renderSongs songs =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ if (model.is_playing) then
+            every second <| always Tick
+          else
+            Sub.none
+        ]
 
 
 
@@ -178,9 +200,10 @@ getSongs query =
 decodeSongs : Decoder (List Song)
 decodeSongs =
     Decode.list
-        (Decode.map4 Song
+        (Decode.map5 Song
             (field "id" int)
             (field "title" string)
-            (field "duration" int)
+            (field "artwork_url" (oneOf [ Decode.map Just string, null Nothing ]))
+            (field "duration" float)
             (field "stream_url" string)
         )
