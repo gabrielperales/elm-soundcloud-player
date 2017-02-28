@@ -13,10 +13,14 @@
 
       var audio = new Audio();
 
+      audio.onended = function(){
+        app.ports.endSong.send(null);
+      };
+
       app.ports.playSong.subscribe(function(songSrc){
         if (songSrc !== audio.src) {
           audio.pause();
-          audio = new Audio(songSrc);
+          audio.src = songSrc;
         }
         audio.play();
       });
@@ -27,7 +31,7 @@
 
       app.ports.stopSong.subscribe(function(){
         audio.pause();
-        audio = new Audio();
+        audio.src = '';
       });
 
     </script>

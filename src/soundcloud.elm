@@ -24,6 +24,9 @@ port pauseSong : String -> Cmd msg
 port stopSong : String -> Cmd msg
 
 
+port endSong : (() -> msg) -> Sub msg
+
+
 main : Program Never Model Msg
 main =
     Html.program
@@ -185,6 +188,7 @@ subscriptions model =
             every second <| always Tick
           else
             Sub.none
+        , endSong (always Stop)
         ]
 
 
