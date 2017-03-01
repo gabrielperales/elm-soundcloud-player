@@ -34,6 +34,10 @@
         audio.src = '';
       });
 
+      app.ports.seekSong.subscribe(function(time){
+        audio.currentTime = time / 1000;
+      });
+
     </script>
   </body>
 </html>
