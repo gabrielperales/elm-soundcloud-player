@@ -7,6 +7,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, map, oneOf, string, int, float, at, null)
 import Time exposing (..)
 import Date
+import List
 import Date.Format exposing (format)
 
 
@@ -139,7 +140,7 @@ update msg model =
             ( model, Cmd.none )
 
         AddToPlaylist song ->
-            ( { model | playlist = song :: model.playlist }, Cmd.none )
+            ( { model | playlist = List.append model.playlist [ song ] }, Cmd.none )
 
         Tick ->
             let
@@ -156,20 +157,36 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h2 [] [ text "Search a song:" ]
-        , Html.form [ onSubmit (Search model.query) ]
-            [ input [ type_ "text", placeholder "some song...", value model.query, onInput Change ] []
-            , button [ type_ "submit" ] [ text "Search" ]
-            , audio [] []
+    let
+        currentSongHtml =
+            renderPlayingSong model.is_playing model.elapsed_time model.current_song
+
+        searchSongsHtml =
+            renderSongs renderSong model.songs
+
+        playlistHtml =
+            if (not <| List.isEmpty model.playlist) then
+                div []
+                    [ h3 [] [ text "Playlist" ]
+                    , button [ onClick PlayNext ] [ text "Next" ]
+                    , renderSongs renderPlayListSong model.playlist
+                    ]
+            else
+                text ""
+    in
+        div []
+            [ h2 [] [ text "Search a song:" ]
+            , Html.form [ onSubmit (Search model.query) ]
+                [ input [ type_ "text", placeholder "some song...", value model.query, onInput Change ] []
+                , button [ type_ "submit" ] [ text "Search" ]
+                , audio [] []
+                ]
+            , br [] []
+            , currentSongHtml
+            , br [] []
+            , searchSongsHtml
+            , playlistHtml
             ]
-        , br [] []
-        , renderPlayingSong model.is_playing model.elapsed_time model.current_song
-        , br [] []
-        , renderSongs model.songs
-        , h3 [] [ text "Playlist" ]
-        , renderSongs model.playlist
-        ]
 
 
 renderPlayingSong : Bool -> Time -> Maybe Song -> Html Msg
@@ -200,7 +217,6 @@ renderPlayingSong is_playing elapsed_time playing =
                           else
                             button [ onClick (Play song) ] [ text "Play" ]
                         , button [ onClick Stop ] [ text "Stop" ]
-                        , button [ onClick PlayNext ] [ text "Next" ]
                         ]
                     , input [ type_ "range", onChange Seek, Attr.max (toString song.duration), value (toString elapsed_time) ] []
                     ]
@@ -209,17 +225,23 @@ renderPlayingSong is_playing elapsed_time playing =
                 text ""
 
 
-renderSongs : List Song -> Html Msg
-renderSongs songs =
+renderSong : Song -> Html Msg
+renderSong song =
+    div []
+        [ a [ href "#", onClick <| Play song ] [ text song.title ]
+        , button [ onClick <| AddToPlaylist song ] [ text "add To playlist" ]
+        ]
+
+
+renderPlayListSong : Song -> Html Msg
+renderPlayListSong song =
+    text song.title
+
+
+renderSongs : (Song -> Html Msg) -> List Song -> Html Msg
+renderSongs renderfn songs =
     songs
-        |> List.map
-            (\song ->
-                ([ a [ href "#", onClick <| Play song ] [ text song.title ]
-                 , button [ onClick <| AddToPlaylist song ] [ text "add To playlist" ]
-                 ]
-                )
-            )
-        |> List.map (li [])
+        |> List.map (renderfn >> List.singleton >> li [])
         |> (ul [])
 
 
