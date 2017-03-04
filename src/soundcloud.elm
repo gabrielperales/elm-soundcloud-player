@@ -1,5 +1,19 @@
 port module Main exposing (..)
 
+import Material as Mdl
+import Material.Icon as Icon
+import Material.Textfield as Textfield
+import Material.Card as Card
+import Material.List as List
+
+
+--import Material.Color as Color
+
+import Material.Button as Button
+import Material.Slider as Slider
+import Material.Grid as Grid exposing (..)
+import Material.Options as Options exposing (css)
+import Material.Layout as Layout
 import Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (..)
@@ -7,7 +21,6 @@ import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, map, oneOf, string, int, float, at, null)
 import Time exposing (..)
 import Date
-import List
 import Date.Format exposing (format)
 
 
@@ -59,6 +72,9 @@ type alias Model =
     , is_playing : Bool
     , elapsed_time : Time
     , playlist : List Song
+    , mdl :
+        Mdl.Model
+        -- Boilerplate: model store for any and all Mdl components you use.
     }
 
 
@@ -71,9 +87,14 @@ type alias Song =
     }
 
 
+model : Model
+model =
+    Model "" [] Nothing False 0 [] Mdl.model
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" [] Nothing False 0 []
+    ( model
     , Cmd.none
     )
 
@@ -93,6 +114,7 @@ type Msg
     | SongList (Result Http.Error (List Song))
     | Tick
     | AddToPlaylist Song
+    | Mdl (Mdl.Msg Msg)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -150,6 +172,10 @@ update msg model =
             in
                 ( { model | elapsed_time = new_time }, Cmd.none )
 
+        -- Boilerplate: Mdl action handler.
+        Mdl msg_ ->
+            Mdl.update Mdl msg_ model
+
 
 
 -- VIEW
@@ -174,19 +200,42 @@ view model =
             else
                 text ""
     in
-        div []
-            [ h2 [] [ text "Search a song:" ]
-            , Html.form [ onSubmit (Search model.query) ]
-                [ input [ type_ "text", placeholder "some song...", value model.query, onInput Change ] []
-                , button [ type_ "submit" ] [ text "Search" ]
-                , audio [] []
+        Layout.render Mdl
+            model.mdl
+            [ Layout.fixedHeader ]
+            { header =
+                [ grid []
+                    [ cell [ Grid.size All 12 ]
+                        [ Html.form [ onSubmit (Search model.query) ]
+                            [ Textfield.render Mdl
+                                [ 2 ]
+                                model.mdl
+                                [ Textfield.label "some song...", Textfield.value model.query, Options.onInput Change ]
+                                []
+                            , Button.render Mdl
+                                [ 0 ]
+                                model.mdl
+                                [ Button.icon
+                                , Button.ripple
+                                ]
+                                [ Icon.i "search" ]
+                            , audio [] []
+                            ]
+                        ]
+                    ]
                 ]
-            , br [] []
-            , currentSongHtml
-            , br [] []
-            , searchSongsHtml
-            , playlistHtml
-            ]
+            , drawer = []
+            , tabs = ( [], [] )
+            , main =
+                [ grid []
+                    [ cell [ Grid.size All 6, Grid.size Phone 12 ] [ currentSongHtml ]
+                    , cell [ Grid.size All 6, Grid.size Phone 12 ]
+                        [ searchSongsHtml
+                        , playlistHtml
+                        ]
+                    ]
+                ]
+            }
 
 
 renderPlayingSong : Bool -> Time -> Maybe Song -> Html Msg
@@ -196,6 +245,17 @@ renderPlayingSong is_playing elapsed_time playing =
             time
                 |> Date.fromTime
                 |> format "%M:%S"
+
+        btn icon msg =
+            Button.render Mdl
+                [ 0 ]
+                model.mdl
+                [ Button.icon
+                , Button.ripple
+                , Button.colored
+                , Options.onClick msg
+                ]
+                [ Icon.i icon ]
 
         cover url =
             case url of
@@ -207,42 +267,67 @@ renderPlayingSong is_playing elapsed_time playing =
     in
         case playing of
             Just song ->
-                div []
-                    [ cover song.artwork_url
-                    , h3 [] [ text ("Playing: " ++ song.title) ]
-                    , p [] [ text (displayFormat elapsed_time ++ "/" ++ displayFormat song.duration) ]
-                    , div []
-                        [ if is_playing then
-                            button [ onClick Pause ] [ text "Pause" ]
-                          else
-                            button [ onClick (Play song) ] [ text "Play" ]
-                        , button [ onClick Stop ] [ text "Stop" ]
+                let
+                    artwork_url =
+                        Maybe.withDefault "" song.artwork_url
+                in
+                    Card.view [ css "width" "100%" ]
+                        [ Card.title [] [ Card.head [] [ text song.title ] ]
+                        , Card.media
+                            [ css "background" ("url(" ++ artwork_url ++ ") center/150px no-repeat")
+                            , css "height" "200px"
+                            ]
+                            []
+                        , Card.text [ css "text-align" "center" ] [ text (displayFormat elapsed_time ++ "/" ++ displayFormat song.duration) ]
+                        , Card.actions []
+                            [ grid []
+                                [ cell [ Grid.size All 12 ]
+                                    [ if is_playing then
+                                        btn "pause" Pause
+                                      else
+                                        btn "play_arrow" (Play song)
+                                    , btn "stop" Stop
+                                    , btn "skip_next" PlayNext
+                                    ]
+                                ]
+                            , br [] []
+                            , Slider.view [ Slider.onChange Seek, Slider.value elapsed_time, Slider.max song.duration ]
+                            ]
                         ]
-                    , input [ type_ "range", onChange Seek, Attr.max (toString song.duration), value (toString elapsed_time) ] []
-                    ]
 
             Nothing ->
                 text ""
 
 
-renderSong : Song -> Html Msg
+renderSong : Song -> List (Html Msg)
 renderSong song =
-    div []
-        [ a [ href "#", onClick <| Play song ] [ text song.title ]
-        , button [ onClick <| AddToPlaylist song ] [ text "add To playlist" ]
+    [ List.content []
+        [ List.avatarImage (Maybe.withDefault "" song.artwork_url) []
+        , a [ href "#", onClick <| Play song ] [ text song.title ]
         ]
+    , List.content2 []
+        [ Button.render Mdl
+            [ 0 ]
+            model.mdl
+            [ Button.icon
+            , Button.ripple
+            , Options.onClick (AddToPlaylist song)
+            ]
+            [ Icon.i "playlist_add" ]
+        ]
+    ]
 
 
-renderPlayListSong : Song -> Html Msg
+renderPlayListSong : Song -> List (Html Msg)
 renderPlayListSong song =
-    text song.title
+    [ text song.title ]
 
 
-renderSongs : (Song -> Html Msg) -> List Song -> Html Msg
+renderSongs : (Song -> List (Html Msg)) -> List Song -> Html Msg
 renderSongs renderfn songs =
     songs
-        |> List.map (renderfn >> List.singleton >> li [])
-        |> (ul [])
+        |> List.map (renderfn >> List.li [])
+        |> (List.ul [])
 
 
 
