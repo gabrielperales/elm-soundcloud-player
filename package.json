@@ -4,14 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "elm-live src/Main.elm --output=js/bundle.js --open --debug",
+    "start": "webpack-dev-server",
+    "build": "webpack -p",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^4.0.0",
     "elm": "^0.18.0",
-    "elm-live": "^2.7.4"
+    "elm-webpack-loader": "^4.2.0",
+    "webpack": "^2.2.1"
   }
 }

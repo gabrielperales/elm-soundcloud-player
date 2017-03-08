@@ -12,11 +12,6 @@ import Time exposing (..)
 import Material as Mdl
 
 
-client_id : String
-client_id =
-    "eb6df903547f8123e3cb79e5429a0999"
-
-
 onChange : (Time -> msg) -> Attribute msg
 onChange toMsg =
     at [ "target", "value" ] string
@@ -24,9 +19,9 @@ onChange toMsg =
         |> on "change"
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , view = view
         , update = update
@@ -34,18 +29,27 @@ main =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( model
-    , Cmd.none
-    )
+type alias Flags =
+    { client_id : String
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    let
+        { client_id } =
+            flags
+    in
+        ( { model | client_id = client_id }
+        , Cmd.none
+        )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Search query ->
-            ( model, getSongs query )
+            ( model, getSongs query model.client_id )
 
         Change input ->
             ( { model | query = input }, Cmd.none )
@@ -59,7 +63,7 @@ update msg model =
                         model.elapsed_time
             in
                 ( { model | current_song = Just song, is_playing = True, elapsed_time = time }
-                , playSong (song.stream_url ++ "?client_id=" ++ client_id)
+                , playSong (song.stream_url ++ "?client_id=" ++ model.client_id)
                 )
 
         PlayNext ->
@@ -116,8 +120,8 @@ subscriptions model =
         ]
 
 
-getSongs : String -> Cmd Msg
-getSongs query =
+getSongs : String -> String -> Cmd Msg
+getSongs query client_id =
     let
         limit =
             toString 50

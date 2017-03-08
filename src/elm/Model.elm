@@ -14,6 +14,7 @@ type alias Model =
     , is_playing : Bool
     , elapsed_time : Time
     , playlist : List Song
+    , client_id : String
     , mdl :
         Mdl.Model
         -- Boilerplate: model store for any and all Mdl components you use.
@@ -31,4 +32,12 @@ type alias Song =
 
 model : Model
 model =
-    Model "" [] Nothing False 0 [] Mdl.model
+    { query = ""
+    , songs = []
+    , current_song = Nothing
+    , is_playing = False
+    , elapsed_time = 0
+    , playlist = []
+    , client_id = ""
+    , mdl = Mdl.model
+    }
