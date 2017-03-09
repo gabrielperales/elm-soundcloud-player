@@ -1,7 +1,6 @@
-module View exposing (..)
+module Views exposing (..)
 
-import Model exposing (..)
-import Messages exposing (..)
+import Types exposing (..)
 import Html exposing (..)
 import Html.Events exposing (onClick, onSubmit)
 import Html.Attributes exposing (..)
@@ -43,7 +42,7 @@ view model =
                 text ""
     in
         Layout.render Mdl
-            model.mdl
+            Mdl.model
             [ Layout.fixedHeader ]
             { header =
                 [ grid []
@@ -51,12 +50,12 @@ view model =
                         [ Html.form [ onSubmit (Search model.query) ]
                             [ Textfield.render Mdl
                                 [ 2 ]
-                                model.mdl
+                                Mdl.model
                                 [ Textfield.label "some song...", Textfield.value model.query, Options.onInput Change ]
                                 []
                             , Button.render Mdl
                                 [ 0 ]
-                                model.mdl
+                                Mdl.model
                                 [ Button.icon
                                 , Button.ripple
                                 ]
@@ -91,7 +90,7 @@ renderPlayingSong is_playing elapsed_time playing =
         btn icon msg =
             Button.render Mdl
                 [ 0 ]
-                model.mdl
+                Mdl.model
                 [ Button.icon
                 , Button.ripple
                 , Button.colored
@@ -150,7 +149,7 @@ renderSong song =
     , List.content2 []
         [ Button.render Mdl
             [ 0 ]
-            model.mdl
+            Mdl.model
             [ Button.icon
             , Button.ripple
             , Options.onClick (AddToPlaylist song)

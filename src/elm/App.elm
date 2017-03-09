@@ -1,22 +1,13 @@
-module Main exposing (..)
+module App exposing (..)
 
+import Types exposing (..)
 import Ports exposing (..)
-import Model exposing (..)
-import Messages exposing (..)
-import View exposing (..)
+import Views exposing (..)
+import FetchSongs exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
-import Http
-import Json.Decode as Decode exposing (Decoder, decodeString, field, map, oneOf, string, int, float, at, null)
 import Time exposing (..)
 import Material as Mdl
-
-
-onChange : (Time -> msg) -> Attribute msg
-onChange toMsg =
-    at [ "target", "value" ] string
-        |> Decode.map (String.toInt >> Result.withDefault 0 >> toFloat >> toMsg)
-        |> on "change"
 
 
 main : Program Flags Model Msg
@@ -29,8 +20,20 @@ main =
         }
 
 
-type alias Flags =
-    { client_id : String
+
+-- MODEL
+
+
+initialModel : Model
+initialModel =
+    { query = ""
+    , songs = []
+    , current_song = Nothing
+    , is_playing = False
+    , elapsed_time = 0
+    , playlist = []
+    , client_id = ""
+    , mdl = Mdl.model
     }
 
 
@@ -40,9 +43,13 @@ init flags =
         { client_id } =
             flags
     in
-        ( { model | client_id = client_id }
+        ( { initialModel | client_id = client_id }
         , Cmd.none
         )
+
+
+
+-- UPDATE
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -118,27 +125,3 @@ subscriptions model =
             Sub.none
         , endSong (always PlayNext)
         ]
-
-
-getSongs : String -> String -> Cmd Msg
-getSongs query client_id =
-    let
-        limit =
-            toString 50
-
-        url =
-            "http://api.soundcloud.com/tracks?client_id=" ++ client_id ++ "&limit=" ++ limit ++ "&q=" ++ query
-    in
-        Http.send SongList (Http.get url decodeSongs)
-
-
-decodeSongs : Decoder (List Song)
-decodeSongs =
-    Decode.list
-        (Decode.map5 Song
-            (field "id" int)
-            (field "title" string)
-            (field "artwork_url" (oneOf [ Decode.map Just string, null Nothing ]))
-            (field "duration" float)
-            (field "stream_url" string)
-        )
