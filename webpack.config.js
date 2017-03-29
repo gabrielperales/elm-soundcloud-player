@@ -5,8 +5,7 @@ const webpack = require('webpack');
 module.exports = {
   entry: './src/main.js',
   output: {
-    path: path.join(__dirname, 'js'),
-    filename: 'bundle.js',
+    filename: 'js/bundle.js',
   },
   devServer: {
     inline: true,

@@ -16,5 +16,8 @@
     "elm": "^0.18.0",
     "elm-webpack-loader": "^4.2.0",
     "webpack": "^2.2.1"
+  },
+  "devDependencies": {
+    "webpack-dev-server": "^2.4.2"
   }
 }

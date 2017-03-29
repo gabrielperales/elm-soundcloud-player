@@ -21,7 +21,7 @@ launch the `webpack dev server` with `npm start`.
 
 ## Build a bundle
 
-You can compile the elm code to javascript jsut running `npm run build`.
+You can compile the elm code to javascript just running `npm run build`.
 
 ## Contributing
 
