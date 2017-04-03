@@ -9,12 +9,14 @@ module.exports = {
   },
   devServer: {
     inline: true,
+    historyApiFallback: true,
   },
   module: {
     rules: [{
       test: /\.elm$/,
       exclude: [/elm-stuff/, /node_modules/],
-      loader: 'elm-webpack-loader',
+      loader: 'elm-webpack-loader' +
+        (process.env.NODE_ENV !== 'production' ? '?+debug' : ''),
     }],
   },
   plugins: [
