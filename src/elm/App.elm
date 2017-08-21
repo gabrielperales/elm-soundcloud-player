@@ -1,13 +1,12 @@
-module App exposing (..)
+module App exposing (main)
 
-import Types exposing (..)
-import Ports exposing (..)
-import Views exposing (..)
-import FetchSongs exposing (..)
-import Html exposing (..)
-import Html.Events exposing (..)
-import Time exposing (..)
-import Material as Mdl
+import Data.Song exposing (Song)
+import Data.Flags exposing (Flags)
+import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
+import Request.Song
+import Time exposing (Time, every, second)
+import Http
+import Html exposing (Html, div)
 
 
 main : Program Flags Model Msg
@@ -24,6 +23,17 @@ main =
 -- MODEL
 
 
+type alias Model =
+    { query : String
+    , songs : List Song
+    , current_song : Maybe Song
+    , is_playing : Bool
+    , elapsed_time : Time
+    , playlist : List Song
+    , client_id : String
+    }
+
+
 initialModel : Model
 initialModel =
     { query = ""
@@ -33,7 +43,6 @@ initialModel =
     , elapsed_time = 0
     , playlist = []
     , client_id = ""
-    , mdl = Mdl.model
     }
 
 
@@ -49,14 +58,41 @@ init flags =
 
 
 
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    div [] []
+
+
+
 -- UPDATE
+
+
+type Msg
+    = Search String
+    | Change String
+    | Play Song
+    | Stop
+    | Pause
+    | Seek Time
+    | PlayNext
+    | SongList (Result Http.Error (List Song))
+    | Tick
+    | AddToPlaylist Song
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Search query ->
-            ( model, getSongs query model.client_id )
+            let
+                cmd =
+                    Request.Song.list query model.client_id
+                        |> Http.send SongList
+            in
+                ( model, cmd )
 
         Change input ->
             ( { model | query = input }, Cmd.none )
@@ -106,10 +142,6 @@ update msg model =
                     ((+) second) model.elapsed_time
             in
                 ( { model | elapsed_time = new_time }, Cmd.none )
-
-        -- Boilerplate: Mdl action handler.
-        Mdl msg_ ->
-            Mdl.update Mdl msg_ model
 
 
 
