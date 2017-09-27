@@ -4,7 +4,10 @@ const path = require('path')
 const webpack = require('webpack')
 
 module.exports = {
-  entry: ['tachyons', './src/main.js'],
+  entry: [
+    './src/elm/Stylesheets.elm',
+    './src/main.js'
+  ],
   output: {
     filename: 'js/bundle.js'
   },
@@ -16,17 +19,28 @@ module.exports = {
     rules: [
       {
         test: /\.elm$/,
-        exclude: [/elm-stuff/, /node_modules/],
-        loader: 'elm-webpack-loader' + (process.env.NODE_ENV !== 'production' ? '?+debug' : '')
+        exclude: [/elm-stuff/, /node_modules/, /Stylesheets\.elm$/],
+        use: [
+          'elm-hot-loader',
+          {
+            loader: 'elm-webpack-loader',
+            options: {
+              debug: process.env.NODE_ENV !== 'production',
+            }
+          },
+        ],
       },
       {
-        test: /\.css$/,
-        loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' })
+        test: /Stylesheets\.elm$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          'elm-css-webpack-loader',
+        ],
       }
     ]
   },
   plugins: [
     new webpack.EnvironmentPlugin(['SOUNDCLOUD_CLIENT_ID']),
-    new ExtractTextPlugin('style.css')
   ]
 }

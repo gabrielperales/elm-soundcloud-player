@@ -3,10 +3,14 @@ module App exposing (main)
 import Data.Song exposing (Song)
 import Data.Flags exposing (Flags)
 import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
-import Request.Song
+import Request.Song as RequestSong
 import Time exposing (Time, every, second)
 import Http
-import Html exposing (Html, div)
+import Html exposing (Html, div, text, input)
+import Views.Header as HeaderView
+import Views.SongList as SongList
+import Views.Player as Player
+import Views.Main as Main
 
 
 main : Program Flags Model Msg
@@ -47,14 +51,8 @@ initialModel =
 
 
 init : Flags -> ( Model, Cmd Msg )
-init flags =
-    let
-        { client_id } =
-            flags
-    in
-        ( { initialModel | client_id = client_id }
-        , Cmd.none
-        )
+init { client_id } =
+    update (Search "test") { initialModel | client_id = client_id }
 
 
 
@@ -62,8 +60,12 @@ init flags =
 
 
 view : Model -> Html Msg
-view model =
-    div [] []
+view { songs, current_song, is_playing } =
+    div []
+        [ HeaderView.view
+        , Main.view [ SongList.view songs Play ]
+        , Player.view current_song is_playing Play Pause NoOp NoOp
+        ]
 
 
 
@@ -81,6 +83,7 @@ type Msg
     | SongList (Result Http.Error (List Song))
     | Tick
     | AddToPlaylist Song
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -89,7 +92,7 @@ update msg model =
         Search query ->
             let
                 cmd =
-                    Request.Song.list query model.client_id
+                    RequestSong.list model.client_id query
                         |> Http.send SongList
             in
                 ( model, cmd )
@@ -142,6 +145,9 @@ update msg model =
                     ((+) second) model.elapsed_time
             in
                 ( { model | elapsed_time = new_time }, Cmd.none )
+
+        NoOp ->
+            model ! []
 
 
 

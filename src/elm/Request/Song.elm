@@ -6,7 +6,7 @@ import Http exposing (Request)
 
 
 list : String -> String -> Request (List Song)
-list query client_id =
+list client_id query =
     let
         limit =
             toString 50
