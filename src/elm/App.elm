@@ -11,6 +11,8 @@ import Views.Header as HeaderView
 import Views.SongList as SongList
 import Views.Player as Player
 import Views.Main as Main
+import Http exposing (Error(..))
+import Toasty
 
 
 main : Program Flags Model Msg
@@ -35,6 +37,7 @@ type alias Model =
     , elapsed_time : Time
     , playlist : List Song
     , client_id : String
+    , toasties : Toasty.Stack String
     }
 
 
@@ -47,12 +50,13 @@ initialModel =
     , elapsed_time = 0
     , playlist = []
     , client_id = ""
+    , toasties = Toasty.initialState
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init { client_id } =
-    update (Search "test") { initialModel | client_id = client_id }
+    update Search { initialModel | client_id = client_id }
 
 
 
@@ -60,11 +64,12 @@ init { client_id } =
 
 
 view : Model -> Html Msg
-view { songs, current_song, is_playing } =
+view { songs, current_song, is_playing, toasties } =
     div []
-        [ HeaderView.view
+        [ HeaderView.view Change Search
         , Main.view [ SongList.view songs Play ]
         , Player.view current_song is_playing Play Pause NoOp NoOp
+        , Toasty.view Toasty.config (\toast -> div [] [ text toast ]) ToastyMsg toasties
         ]
 
 
@@ -73,7 +78,7 @@ view { songs, current_song, is_playing } =
 
 
 type Msg
-    = Search String
+    = Search
     | Change String
     | Play Song
     | Stop
@@ -83,16 +88,17 @@ type Msg
     | SongList (Result Http.Error (List Song))
     | Tick
     | AddToPlaylist Song
+    | ToastyMsg (Toasty.Msg String)
     | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Search query ->
+        Search ->
             let
                 cmd =
-                    RequestSong.list model.client_id query
+                    RequestSong.list model.client_id model.query
                         |> Http.send SongList
             in
                 ( model, cmd )
@@ -121,22 +127,28 @@ update msg model =
                     update Stop model
 
         Pause ->
-            ( { model | is_playing = False }, pauseSong "" )
+            { model | is_playing = False } ! [ pauseSong "" ]
 
         Stop ->
-            ( { model | current_song = Nothing, is_playing = False, elapsed_time = 0 }, stopSong "" )
+            { model | current_song = Nothing, is_playing = False, elapsed_time = 0 } ! [ stopSong "" ]
 
         Seek time ->
-            ( { model | elapsed_time = time }, seekSong time )
+            { model | elapsed_time = time } ! [ seekSong time ]
 
         SongList (Ok songs) ->
-            ( { model | songs = songs }, Cmd.none )
+            { model | songs = songs } ! []
 
-        SongList (Err _) ->
-            ( model, Cmd.none )
+        SongList (Err error) ->
+            case error of
+                BadPayload debug _ ->
+                    ( model, Cmd.none )
+                        |> Toasty.addToast Toasty.config ToastyMsg debug
+
+                _ ->
+                    model ! []
 
         AddToPlaylist song ->
-            ( { model | playlist = List.append model.playlist [ song ] }, Cmd.none )
+            { model | playlist = List.append model.playlist [ song ] } ! []
 
         Tick ->
             let
@@ -144,7 +156,10 @@ update msg model =
                 new_time =
                     ((+) second) model.elapsed_time
             in
-                ( { model | elapsed_time = new_time }, Cmd.none )
+                { model | elapsed_time = new_time } ! []
+
+        ToastyMsg toastyMsg ->
+            Toasty.update Toasty.config ToastyMsg toastyMsg model
 
         NoOp ->
             model ! []

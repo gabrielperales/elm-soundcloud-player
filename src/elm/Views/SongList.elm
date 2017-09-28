@@ -5,7 +5,6 @@ import Html exposing (Html, li, ul)
 import Html.CssHelpers as CssHelpers
 import Views.Song as SongView
 import Views.SongListStyle as Style
-import Style.Global as Global exposing (globalClass)
 
 
 { class } =
@@ -17,7 +16,7 @@ view songs onclick =
     songs
         |> List.map
             (\song ->
-                li [ class [ Style.Item ], globalClass [ Global.Maxwidth, Global.Center ] ]
+                li [ class [ Style.Item ] ]
                     [ SongView.view song (onclick song) ]
             )
         |> ul [ class [ Style.List ] ]

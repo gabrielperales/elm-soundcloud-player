@@ -1,7 +1,8 @@
 module Views.Header exposing (view)
 
-import Html exposing (Html, div, text, input)
-import Html.Attributes as Attr exposing (type_)
+import Html exposing (Html, div, a, img, text, form, input)
+import Html.Attributes exposing (type_, src, href)
+import Html.Events exposing (onSubmit, onInput)
 import Html.CssHelpers as CssHelpers
 import Style.Global as Global exposing (globalClass)
 import Views.HeaderStyle as Style
@@ -11,8 +12,8 @@ import Views.HeaderStyle as Style
     CssHelpers.withNamespace "header"
 
 
-view : Html msg
-view =
+view : (String -> msg) -> msg -> Html msg
+view change submit =
     div [ class [ Style.HeaderContainer ] ]
         [ div
             [ globalClass
@@ -24,10 +25,12 @@ view =
                 , Global.H100
                 ]
             ]
-            [ div [ class [ Style.Logo ] ] [ text "sound-elm" ]
+            [ a [ href "#", class [ Style.Logo ] ] [ img [ src "assets/elm_logo.png" ] [], text "sound-elm" ]
             , div [ class [ Style.SearchField ] ]
-                [ input [ type_ "text", class [ Style.SearchFieldInput ] ] []
+                [ form [ onSubmit submit ]
+                    [ input [ type_ "text", class [ Style.SearchFieldInput ], onInput change ] []
+                    ]
                 ]
             ]
-        , div [ Attr.class "h2-l" ] []
+        , div [] []
         ]

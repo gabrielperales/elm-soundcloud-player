@@ -25,6 +25,6 @@ view { title, artwork_url, description } onclick =
                 [ img [ src artwork ] []
                 ]
             , div []
-                [ h4 [] [ text title ]
+                [ h4 [ class [ Style.Title ] ] [ text title ]
                 ]
             ]
