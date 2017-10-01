@@ -18,7 +18,7 @@ view : Song -> msg -> Html msg
 view { title, artwork_url, description } onclick =
     let
         artwork =
-            Maybe.withDefault "" artwork_url
+            Maybe.withDefault "assets/elm_logo.png" artwork_url
     in
         div [ class [ Style.Container ], globalClass [ Global.Flex, Global.DirectionRow ], onClick onclick ]
             [ div [ class [ Style.Image ] ]

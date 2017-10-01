@@ -4,7 +4,7 @@ import Css exposing (..)
 import Css.Elements exposing (img)
 import Css.Namespace exposing (namespace)
 import Style.Colors exposing (colors)
-import Style.Responsive exposing (tablet)
+import Style.Responsive exposing (desktop)
 
 
 type Class
@@ -46,12 +46,13 @@ css =
             [ display block
             ]
         , class SearchFieldInput
-            [ display block
+            [ display inlineBlock
             , border zero
+            , marginLeft <| em 0.5
             , height <| pct 100
             , fontSize <| em 1
             ]
-        , tablet
+        , desktop
             [ class HeaderContainer
                 [ paddingLeft zero
                 , paddingRight zero

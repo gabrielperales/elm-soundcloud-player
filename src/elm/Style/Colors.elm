@@ -8,6 +8,9 @@ type alias Colors =
     , lightGray : Color
     , darkGray : Color
     , white : Color
+    , success : Color
+    , warning : Color
+    , error : Color
     }
 
 
@@ -17,4 +20,7 @@ colors =
     , lightGray = hex "dddddd"
     , darkGray = hex "333333"
     , white = hex "ffffff"
+    , success = hex "2ecc40"
+    , warning = hex "ff851b"
+    , error = hex "ff4136"
     }

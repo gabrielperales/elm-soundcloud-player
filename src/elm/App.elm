@@ -11,8 +11,8 @@ import Views.Header as HeaderView
 import Views.SongList as SongList
 import Views.Player as Player
 import Views.Main as Main
+import Views.Toast as Toast exposing (Toast)
 import Http exposing (Error(..))
-import Toasty
 
 
 main : Program Flags Model Msg
@@ -37,7 +37,7 @@ type alias Model =
     , elapsed_time : Time
     , playlist : List Song
     , client_id : String
-    , toasties : Toasty.Stack String
+    , toasties : Toast.Stack Toast
     }
 
 
@@ -50,7 +50,7 @@ initialModel =
     , elapsed_time = 0
     , playlist = []
     , client_id = ""
-    , toasties = Toasty.initialState
+    , toasties = Toast.initialState
     }
 
 
@@ -69,7 +69,7 @@ view { songs, current_song, is_playing, toasties } =
         [ HeaderView.view Change Search
         , Main.view [ SongList.view songs Play ]
         , Player.view current_song is_playing Play Pause NoOp NoOp
-        , Toasty.view Toasty.config (\toast -> div [] [ text toast ]) ToastyMsg toasties
+        , Toast.view ToastMsg toasties
         ]
 
 
@@ -88,7 +88,7 @@ type Msg
     | SongList (Result Http.Error (List Song))
     | Tick
     | AddToPlaylist Song
-    | ToastyMsg (Toasty.Msg String)
+    | ToastMsg (Toast.Msg Toast)
     | NoOp
 
 
@@ -117,6 +117,7 @@ update msg model =
                 ( { model | current_song = Just song, is_playing = True, elapsed_time = time }
                 , playSong (song.stream_url ++ "?client_id=" ++ model.client_id)
                 )
+                    |> Toast.addToast ToastMsg (Toast.success "Playing song..." song.title)
 
         PlayNext ->
             case model.playlist of
@@ -141,8 +142,9 @@ update msg model =
         SongList (Err error) ->
             case error of
                 BadPayload debug _ ->
-                    ( model, Cmd.none )
-                        |> Toasty.addToast Toasty.config ToastyMsg debug
+                    Toast.addToast ToastMsg
+                        (Toast.error "There was an error retrieving songs..." debug)
+                        ( model, Cmd.none )
 
                 _ ->
                     model ! []
@@ -158,8 +160,8 @@ update msg model =
             in
                 { model | elapsed_time = new_time } ! []
 
-        ToastyMsg toastyMsg ->
-            Toasty.update Toasty.config ToastyMsg toastyMsg model
+        ToastMsg toastmsg ->
+            Toast.update ToastMsg toastmsg model
 
         NoOp ->
             model ! []

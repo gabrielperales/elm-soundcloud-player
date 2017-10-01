@@ -6,6 +6,7 @@ import Views.HeaderStyle as HeaderStyle
 import Views.SongStyle as SongStyle
 import Views.SongListStyle as SongListStyle
 import Views.PlayerStyle as PlayerStyle
+import Views.ToastStyle as ToastStyle
 
 
 port files : CssFileStructure -> Cmd msg
@@ -21,6 +22,7 @@ cssFiles =
                 , SongStyle.css
                 , SongListStyle.css
                 , PlayerStyle.css
+                , ToastStyle.css
                 ]
           )
         ]
