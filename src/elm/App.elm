@@ -1,6 +1,7 @@
 module App exposing (main)
 
 import Data.Song exposing (Song)
+import Data.Collection exposing (Collection)
 import Data.Flags exposing (Flags)
 import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
 import Request.Song as RequestSong
@@ -12,7 +13,10 @@ import Views.SongList as SongList
 import Views.Player as Player
 import Views.Main as Main
 import Views.Toast as Toast exposing (Toast)
+import Views.Spinner as Spinner
 import Http exposing (Error(..))
+import InfiniteScroll as IS
+import Task
 
 
 main : Program Flags Model Msg
@@ -38,7 +42,15 @@ type alias Model =
     , playlist : List Song
     , client_id : String
     , toasties : Toast.Stack Toast
+    , page : Int
+    , infiniteScroll : IS.Model Msg
+    , next_href : Maybe String
     }
+
+
+loadMore : IS.Direction -> Cmd Msg
+loadMore dir =
+    Task.perform OnLoadMore <| Task.succeed dir
 
 
 initialModel : Model
@@ -51,6 +63,9 @@ initialModel =
     , playlist = []
     , client_id = ""
     , toasties = Toast.initialState
+    , page = 0
+    , infiniteScroll = IS.init loadMore
+    , next_href = Nothing
     }
 
 
@@ -64,12 +79,16 @@ init { client_id } =
 
 
 view : Model -> Html Msg
-view { songs, current_song, is_playing, toasties } =
+view { songs, current_song, is_playing, toasties, infiniteScroll } =
     div []
         [ HeaderView.view Change Search
-        , Main.view [ SongList.view songs Play ]
+        , Main.view [ SongList.view songs Play InfiniteScrollMsg ]
         , Player.view current_song is_playing Play Pause NoOp NoOp
         , Toast.view ToastMsg toasties
+        , if IS.isLoading infiniteScroll then
+            div [] [ Spinner.view ]
+          else
+            text ""
         ]
 
 
@@ -79,13 +98,15 @@ view { songs, current_song, is_playing, toasties } =
 
 type Msg
     = Search
+    | InfiniteScrollMsg IS.Msg
+    | OnLoadMore IS.Direction
     | Change String
     | Play Song
     | Stop
     | Pause
     | Seek Time
     | PlayNext
-    | SongList (Result Http.Error (List Song))
+    | SongList (Result Http.Error Collection)
     | Tick
     | AddToPlaylist Song
     | ToastMsg (Toast.Msg Toast)
@@ -98,10 +119,33 @@ update msg model =
         Search ->
             let
                 cmd =
-                    RequestSong.list model.client_id model.query
+                    RequestSong.defaultOptions model.client_id
+                        |> RequestSong.query model.query
+                        |> RequestSong.linked_partitioning 0
+                        |> RequestSong.request
                         |> Http.send SongList
             in
-                ( model, cmd )
+                { model | songs = [] } ! [ cmd ]
+
+        InfiniteScrollMsg msg_ ->
+            let
+                ( infiniteScroll, cmd ) =
+                    IS.update InfiniteScrollMsg msg_ model.infiniteScroll
+            in
+                { model | infiniteScroll = infiniteScroll } ! [ cmd ]
+
+        OnLoadMore direction ->
+            let
+                cmd =
+                    case model.next_href of
+                        Just url ->
+                            Http.get url Data.Collection.decoder
+                                |> Http.send SongList
+
+                        Nothing ->
+                            Cmd.none
+            in
+                model ! [ cmd ]
 
         Change input ->
             ( { model | query = input }, Cmd.none )
@@ -136,18 +180,40 @@ update msg model =
         Seek time ->
             { model | elapsed_time = time } ! [ seekSong time ]
 
-        SongList (Ok songs) ->
-            { model | songs = songs } ! []
+        SongList (Ok { collection, next_href }) ->
+            let
+                page =
+                    case next_href of
+                        Just _ ->
+                            model.page + 1
+
+                        Nothing ->
+                            model.page
+
+                infiniteScroll =
+                    IS.stopLoading model.infiniteScroll
+            in
+                { model
+                    | songs = model.songs ++ collection
+                    , page = page
+                    , next_href = next_href
+                    , infiniteScroll = infiniteScroll
+                }
+                    ! []
 
         SongList (Err error) ->
-            case error of
-                BadPayload debug _ ->
-                    Toast.addToast ToastMsg
-                        (Toast.error "There was an error retrieving songs..." debug)
-                        ( model, Cmd.none )
+            let
+                infiniteScroll =
+                    IS.stopLoading model.infiniteScroll
+            in
+                case error of
+                    BadPayload debug _ ->
+                        Toast.addToast ToastMsg
+                            (Toast.error "There was an error retrieving songs..." debug)
+                            ( model, Cmd.none )
 
-                _ ->
-                    model ! []
+                    _ ->
+                        { model | infiniteScroll = infiniteScroll } ! []
 
         AddToPlaylist song ->
             { model | playlist = List.append model.playlist [ song ] } ! []

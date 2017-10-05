@@ -20,6 +20,8 @@ css =
             , padding zero
             , paddingTop <| em 3
             , paddingBottom <| px 100
+            , overflow scroll
+            , height <| vh 100
             ]
         , class Item
             [ marginTop zero
@@ -37,7 +39,7 @@ css =
                 , Global.maxWidth
                 ]
             , class Item
-                [ width <| pct 33.33
+                [ width <| pct 25
                 ]
             ]
         ]
