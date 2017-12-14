@@ -18,6 +18,11 @@
     "webpack": "^2.2.1"
   },
   "devDependencies": {
+    "css-loader": "^0.28.7",
+    "elm-css-webpack-loader": "^3.3.0",
+    "elm-hot-loader": "^0.5.4",
+    "extract-text-webpack-plugin": "^2.1.2",
+    "style-loader": "^0.18.2",
     "webpack-dev-server": "^2.4.2"
   }
 }

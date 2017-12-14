@@ -1,6 +1,6 @@
-port module Ports exposing (..)
+port module Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
 
-import Time exposing (..)
+import Time exposing (Time)
 
 
 port playSong : String -> Cmd msg

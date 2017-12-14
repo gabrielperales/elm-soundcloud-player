@@ -1,3 +1,4 @@
+'use strict';
 var Elm = require('./elm/App.elm');
 
 var app = Elm.App.embed(document.getElementById("app"), {'client_id': process.env.SOUNDCLOUD_CLIENT_ID});
