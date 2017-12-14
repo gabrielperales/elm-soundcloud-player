@@ -20,8 +20,6 @@ css =
             , padding zero
             , paddingTop <| em 3
             , paddingBottom <| px 100
-            , overflow scroll
-            , height <| vh 100
             ]
         , class Item
             [ marginTop zero

@@ -11,7 +11,7 @@ type alias Song =
     , title : String
     , artwork_url : Maybe String
     , duration : Time
-    , stream_url : String
+    , stream_url : Maybe String
     , description : Maybe String
     , genre : Maybe String
     }
@@ -29,7 +29,7 @@ decoder =
         (field "title" string)
         (field "artwork_url" (oneOf [ Decode.map Just string, null Nothing ]))
         (field "duration" float)
-        (field "stream_url" string)
+        (field "stream_url" (oneOf [ Decode.map Just string, null Nothing ]))
         (field "description" (oneOf [ Decode.map Just string, null Nothing ]))
         (field "genre" (oneOf [ Decode.map Just string, null Nothing ]))
     )

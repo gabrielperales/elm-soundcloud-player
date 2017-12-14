@@ -28,11 +28,9 @@ view maybeSong isPlaying play pause prev next =
                         button [ onClick <| play song ] [ text "play" ]
             in
                 div [ class [ Style.Container ] ]
-                    [ div []
-                        [ div []
-                            [ img [ src <| Maybe.withDefault "" artwork_url ] []
-                            ]
-                        , div [] [ p [] [ text title ] ]
+                    [ div [ class [ Style.Player ] ]
+                        [ img [ src <| Maybe.withDefault "assets/elm_logo.png" artwork_url ] []
+                        , div [ class [ Style.SongTitle ] ] [ p [] [ text title ] ]
                         , div []
                             [ button [ onClick prev ] [ text "prev" ]
                             , playPauseBtn

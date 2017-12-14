@@ -3,11 +3,13 @@ module App exposing (main)
 import Data.Song exposing (Song)
 import Data.Collection exposing (Collection)
 import Data.Flags exposing (Flags)
+import Data.Genre exposing (Genre(..))
 import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
 import Request.Song as RequestSong
 import Time exposing (Time, every, second)
 import Http
 import Html exposing (Html, div, text, input)
+import Html.Attributes exposing (style)
 import Views.Header as HeaderView
 import Views.SongList as SongList
 import Views.Player as Player
@@ -35,6 +37,7 @@ main =
 
 type alias Model =
     { query : String
+    , genre : Maybe Genre
     , songs : List Song
     , current_song : Maybe Song
     , is_playing : Bool
@@ -56,6 +59,7 @@ loadMore dir =
 initialModel : Model
 initialModel =
     { query = ""
+    , genre = Just House
     , songs = []
     , current_song = Nothing
     , is_playing = False
@@ -80,9 +84,9 @@ init { client_id } =
 
 view : Model -> Html Msg
 view { songs, current_song, is_playing, toasties, infiniteScroll } =
-    div []
-        [ HeaderView.view Change Search
-        , Main.view [ SongList.view songs Play InfiniteScrollMsg ]
+    div [ IS.infiniteScroll InfiniteScrollMsg, style [ ( "height", "100vh" ), ( "overflow", "scroll" ) ] ]
+        [ HeaderView.view UpdateSearchInput Search
+        , Main.view [ SongList.view songs Play ]
         , Player.view current_song is_playing Play Pause NoOp NoOp
         , Toast.view ToastMsg toasties
         , if IS.isLoading infiniteScroll then
@@ -100,7 +104,7 @@ type Msg
     = Search
     | InfiniteScrollMsg IS.Msg
     | OnLoadMore IS.Direction
-    | Change String
+    | UpdateSearchInput String
     | Play Song
     | Stop
     | Pause
@@ -122,6 +126,8 @@ update msg model =
                     RequestSong.defaultOptions model.client_id
                         |> RequestSong.query model.query
                         |> RequestSong.linked_partitioning 0
+                        |> RequestSong.limit 50
+                        |> RequestSong.tags [ "house" ]
                         |> RequestSong.request
                         |> Http.send SongList
             in
@@ -147,7 +153,7 @@ update msg model =
             in
                 model ! [ cmd ]
 
-        Change input ->
+        UpdateSearchInput input ->
             ( { model | query = input }, Cmd.none )
 
         Play song ->
@@ -159,7 +165,7 @@ update msg model =
                         model.elapsed_time
             in
                 ( { model | current_song = Just song, is_playing = True, elapsed_time = time }
-                , playSong (song.stream_url ++ "?client_id=" ++ model.client_id)
+                , playSong (Maybe.withDefault "" song.stream_url ++ "?client_id=" ++ model.client_id)
                 )
                     |> Toast.addToast ToastMsg (Toast.success "Playing song..." song.title)
 
@@ -189,6 +195,9 @@ update msg model =
 
                         Nothing ->
                             model.page
+
+                songsWithStreaming =
+                    List.filterMap .stream_url collection
 
                 infiniteScroll =
                     IS.stopLoading model.infiniteScroll

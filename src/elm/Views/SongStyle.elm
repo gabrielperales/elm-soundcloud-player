@@ -1,7 +1,6 @@
 module Views.SongStyle exposing (css, Class(..))
 
 import Css exposing (..)
-import Css.Elements exposing (img)
 import Css.Namespace exposing (namespace)
 import Style.Responsive exposing (tablet)
 import Style.Colors exposing (colors)
@@ -11,7 +10,9 @@ type Class
     = Container
     | Image
     | Title
-    | Description
+    | Username
+    | Avatar
+    | Main
 
 
 css : Stylesheet
@@ -26,12 +27,28 @@ css =
             [ marginRight <| em 0.5
             , height <| px 50
             , width <| px 50
-            , children
-                [ img [ width inherit, height inherit ] ]
+            , flexShrink zero
             ]
         , class Title
             [ margin <| em 0.25
+            , paddingBottom <| px 4
             , fontSize <| em 0.8
+            , height <| em 1
+            , lineHeight <| em 1.5
+            , overflow hidden
+            , textOverflow ellipsis
+            , width <| pct 75
+            ]
+        , class Username
+            [ fontSize <| em 0.75
+            , color <| rgb 100 100 100
+            ]
+        , class Main
+            [ displayFlex
+            , alignItems center
+            ]
+        , class Avatar
+            [ display none
             ]
         , tablet
             [ class Container
@@ -49,13 +66,19 @@ css =
                 , height <| px 80
                 , overflow hidden
                 , boxSizing borderBox
-                , children
-                    [ img
-                        [ height <| px 180
-                        , position relative
-                        , top <| px -50
-                        ]
-                    ]
+                ]
+            , class Main
+                [ fontSize <| em 0.75
+                , height <| px 30
+                ]
+            , class Avatar
+                [ display block
+                , width <| px 24
+                , height <| px 24
+                , backgroundSize cover
+                , borderRadius <| pct 50
+                , flexShrink zero
+                , marginRight <| px 10
                 ]
             ]
         ]

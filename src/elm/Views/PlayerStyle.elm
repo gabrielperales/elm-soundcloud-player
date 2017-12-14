@@ -6,6 +6,8 @@ import Css.Namespace exposing (namespace)
 
 type Class
     = Container
+    | Player
+    | SongTitle
 
 
 css : Stylesheet
@@ -18,4 +20,12 @@ css =
             , backgroundColor <| rgba 0 0 0 0.95
             , height <| px 100
             ]
+        , class Player
+            [ displayFlex
+            , alignItems center
+            , justifyContent spaceBetween
+            , height <| pct 100
+            ]
+        , class SongTitle
+            [ color <| rgb 255 255 255 ]
         ]

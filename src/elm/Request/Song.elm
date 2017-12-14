@@ -84,6 +84,9 @@ request options =
                         Maybe.map ((++) "&genres=" << toString) options.genres
                    )
                 ++ (Maybe.withDefault "" <|
+                        Maybe.map ((++) "&tags=" << String.join ",") options.tags
+                   )
+                ++ (Maybe.withDefault "" <|
                         Maybe.map ((++) "&limit=" << toString) options.limit
                    )
                 ++ (Maybe.withDefault "" <|

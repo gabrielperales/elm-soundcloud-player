@@ -16,15 +16,13 @@ view =
             , ( "z-index", "999999" )
             , ( "text-align", "center" )
             , ( "background-color", "rgba(0, 0, 0, 0.2)" )
+            , ( "display", "flex" )
+            , ( "align-items", "center" )
+            , ( "justify-content", "center" )
             ]
         ]
         [ node "i"
             [ class "fa fa-spinner fa-pulse fa-3x fa-fw"
-            , style
-                [ ( "position", "fixed" )
-                , ( "top", "50%" )
-                , ( "text-align", "center" )
-                ]
             ]
             []
         ]
