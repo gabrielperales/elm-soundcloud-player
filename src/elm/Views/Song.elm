@@ -1,7 +1,7 @@
 module Views.Song exposing (view)
 
 import Data.Song as Song exposing (Song)
-import Html exposing (Html, div, a, img, h4, p, text)
+import Html exposing (Html, div, a, img, h4, p, text, i)
 import Html.Attributes as Attr exposing (class, src, href, style)
 import Html.Events exposing (onClick)
 import Html.CssHelpers as CssHelpers
@@ -31,7 +31,7 @@ view { title, user, artwork_url, description } onclick =
                 [ class [ Style.Image ]
                 , style [ ( "background", "url(" ++ artwork ++ ") no-repeat 50%" ), ( "background-size", "cover" ) ]
                 ]
-                []
+                [ div [ class [ Style.PlayButton ], style [ ( "transition", "opacity 0.2s" ) ] ] [ i [ Attr.class "fa fa-2x fa-play" ] [] ] ]
             , div [ class [ Style.Main ] ]
                 [ div [ class [ Style.Avatar ], style [ ( "background", "url(" ++ user.avatar_url ++ ") no-repeat " ) ] ] []
                 , div []
