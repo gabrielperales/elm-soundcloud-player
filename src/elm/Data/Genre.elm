@@ -2,10 +2,10 @@ module Data.Genre exposing (Genre(..))
 
 
 type Genre
-    = Chill
+    = House
+    | Chill
     | Deep
     | Dubstep
-    | House
     | Progressive
     | Tech
     | Trance

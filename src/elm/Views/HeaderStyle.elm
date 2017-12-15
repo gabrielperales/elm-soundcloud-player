@@ -12,6 +12,9 @@ type Class
     | Logo
     | SearchField
     | SearchFieldInput
+    | GenresNav
+    | Genres
+    | Genre
 
 
 css : Stylesheet
@@ -52,10 +55,38 @@ css =
             , height <| pct 100
             , fontSize <| em 1
             ]
+        , class GenresNav
+            [ backgroundColor <| rgb 255 255 255
+            , borderBottom3 (px 1) solid (hex "dddddd")
+            ]
+        , class Genre
+            [ displayFlex
+            , justifyContent center
+            , alignItems center
+            , cursor pointer
+            , borderLeft2 (px 1) solid
+            , borderColor <| hex "dddddd"
+            , fontSize <| em 0.6
+            , height <| px 32
+            , width <| pct 100
+            , lastChild
+                [ borderRight2 (px 1) solid
+                ]
+            , hover
+                [ color <| hex "666666"
+                ]
+            ]
+        , class Genres
+            [ color <| hex "adadad"
+            ]
         , desktop
             [ class HeaderContainer
                 [ paddingLeft zero
                 , paddingRight zero
+                ]
+            , class Genres
+                [ displayFlex
+                , justifyContent spaceAround
                 ]
             ]
         ]

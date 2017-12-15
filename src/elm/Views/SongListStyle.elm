@@ -18,7 +18,7 @@ css =
             [ listStyle none
             , margin zero
             , padding zero
-            , paddingTop <| em 3
+            , paddingTop <| em 5
             , paddingBottom <| px 100
             ]
         , class Item

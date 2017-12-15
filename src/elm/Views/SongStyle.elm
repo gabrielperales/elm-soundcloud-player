@@ -13,6 +13,7 @@ type Class
     | Username
     | Avatar
     | Main
+    | PlayButton
 
 
 css : Stylesheet
@@ -22,6 +23,7 @@ css =
             [ borderBottom3 (px 1) solid colors.lightGray
             , backgroundColor colors.nearWhite
             , boxSizing borderBox
+            , cursor pointer
             ]
         , class Image
             [ marginRight <| em 0.5
@@ -79,6 +81,19 @@ css =
                 , borderRadius <| pct 50
                 , flexShrink zero
                 , marginRight <| px 10
+                ]
+            , class PlayButton
+                [ displayFlex
+                , opacity zero
+                , position relative
+                , alignItems center
+                , justifyContent center
+                , backgroundColor <| rgba 0 0 0 0.3
+                , width <| pct 100
+                , height <| pct 100
+                , color <| hex "7ec57c"
+                , hover
+                    [ opacity <| num 1 ]
                 ]
             ]
         ]

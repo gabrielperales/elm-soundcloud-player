@@ -2,7 +2,7 @@ module App exposing (main)
 
 import Data.Song exposing (Song)
 import Data.Collection exposing (Collection)
-import Data.Flags exposing (Flags)
+import Data.Flag exposing (Flag)
 import Data.Genre exposing (Genre(..))
 import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
 import Request.Song as RequestSong
@@ -21,7 +21,7 @@ import InfiniteScroll as IS
 import Task
 
 
-main : Program Flags Model Msg
+main : Program Flag Model Msg
 main =
     Html.programWithFlags
         { init = init
@@ -37,7 +37,7 @@ main =
 
 type alias Model =
     { query : String
-    , genre : Maybe Genre
+    , genre : Genre
     , songs : List Song
     , current_song : Maybe Song
     , is_playing : Bool
@@ -59,7 +59,7 @@ loadMore dir =
 initialModel : Model
 initialModel =
     { query = ""
-    , genre = Just House
+    , genre = House
     , songs = []
     , current_song = Nothing
     , is_playing = False
@@ -73,7 +73,7 @@ initialModel =
     }
 
 
-init : Flags -> ( Model, Cmd Msg )
+init : Flag -> ( Model, Cmd Msg )
 init { client_id } =
     update Search { initialModel | client_id = client_id }
 
@@ -85,7 +85,7 @@ init { client_id } =
 view : Model -> Html Msg
 view { songs, current_song, is_playing, toasties, infiniteScroll } =
     div [ IS.infiniteScroll InfiniteScrollMsg, style [ ( "height", "100vh" ), ( "overflow", "scroll" ) ] ]
-        [ HeaderView.view UpdateSearchInput Search
+        [ HeaderView.view UpdateSearchInput ChangeGenre Search
         , Main.view [ SongList.view songs Play ]
         , Player.view current_song is_playing Play Pause NoOp NoOp
         , Toast.view ToastMsg toasties
@@ -105,6 +105,7 @@ type Msg
     | InfiniteScrollMsg IS.Msg
     | OnLoadMore IS.Direction
     | UpdateSearchInput String
+    | ChangeGenre Genre
     | Play Song
     | Stop
     | Pause
@@ -120,6 +121,10 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ChangeGenre genre ->
+            { model | genre = genre }
+                |> update Search
+
         Search ->
             let
                 cmd =
@@ -127,7 +132,7 @@ update msg model =
                         |> RequestSong.query model.query
                         |> RequestSong.linked_partitioning 0
                         |> RequestSong.limit 50
-                        |> RequestSong.tags [ "house" ]
+                        |> RequestSong.tags [ toString model.genre ]
                         |> RequestSong.request
                         |> Http.send SongList
             in
