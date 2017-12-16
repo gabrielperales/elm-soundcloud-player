@@ -8,6 +8,7 @@ import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
 import Request.Song as RequestSong
 import Time exposing (Time, every, second)
 import Http
+import Navigation exposing (Location)
 import Html exposing (Html, div, text, input)
 import Html.Attributes exposing (style)
 import Views.Header as HeaderView
@@ -19,11 +20,12 @@ import Views.Spinner as Spinner
 import Http exposing (Error(..))
 import InfiniteScroll as IS
 import Task
+import Route exposing (Route)
 
 
 main : Program Flag Model Msg
 main =
-    Html.programWithFlags
+    Navigation.programWithFlags (SetRoute << Route.fromLocation)
         { init = init
         , view = view
         , update = update
@@ -73,9 +75,9 @@ initialModel =
     }
 
 
-init : Flag -> ( Model, Cmd Msg )
-init { client_id } =
-    update Search { initialModel | client_id = client_id }
+init : Flag -> Location -> ( Model, Cmd Msg )
+init { client_id } location =
+    update (SetRoute (Route.fromLocation location)) { initialModel | client_id = client_id }
 
 
 
@@ -83,9 +85,9 @@ init { client_id } =
 
 
 view : Model -> Html Msg
-view { songs, current_song, is_playing, toasties, infiniteScroll } =
+view { genre, songs, current_song, is_playing, toasties, infiniteScroll } =
     div [ IS.infiniteScroll InfiniteScrollMsg, style [ ( "height", "100vh" ), ( "overflow", "scroll" ) ] ]
-        [ HeaderView.view UpdateSearchInput ChangeGenre Search
+        [ HeaderView.view genre UpdateSearchInput Search
         , Main.view [ SongList.view songs Play ]
         , Player.view current_song is_playing Play Pause NoOp NoOp
         , Toast.view ToastMsg toasties
@@ -101,11 +103,11 @@ view { songs, current_song, is_playing, toasties, infiniteScroll } =
 
 
 type Msg
-    = Search
+    = SetRoute (Maybe Route)
+    | Search
     | InfiniteScrollMsg IS.Msg
     | OnLoadMore IS.Direction
     | UpdateSearchInput String
-    | ChangeGenre Genre
     | Play Song
     | Stop
     | Pause
@@ -121,9 +123,14 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ChangeGenre genre ->
-            { model | genre = genre }
-                |> update Search
+        SetRoute maybeRoute ->
+            case maybeRoute of
+                Just (Route.Genre genre) ->
+                    { model | genre = genre }
+                        |> update Search
+
+                _ ->
+                    model ! []
 
         Search ->
             let
