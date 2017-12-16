@@ -27,9 +27,9 @@ view maybeSong isPlaying play pause prev next =
 
                 playPauseBtn =
                     if isPlaying then
-                        i [ Attr.class "fa fa-play", onClick pause ] []
+                        i [ Attr.class "fa fa-pause", onClick pause ] []
                     else
-                        i [ Attr.class "fa fa-pause", onClick <| play song ] []
+                        i [ Attr.class "fa fa-play", onClick <| play song ] []
             in
                 div [ class [ Style.Container ] ]
                     [ div [ globalClass [ Global.Maxwidth, Global.AlignItemsCenter ] ]
