@@ -14,7 +14,7 @@ import Route exposing (Route(..), href)
     CssHelpers.withNamespace "header"
 
 
-view : Genre -> (String -> msg) -> msg -> Html msg
+view : Maybe Genre -> (String -> msg) -> msg -> Html msg
 view currentGenre changeSearch submit =
     div [ class [ Style.HeaderContainer ] ]
         [ div
@@ -42,7 +42,7 @@ view currentGenre changeSearch submit =
                         let
                             classes =
                                 [ Style.Genre ]
-                                    ++ if genre == currentGenre then
+                                    ++ if Just genre == currentGenre then
                                         [ Style.CurrentGenre ]
                                        else
                                         []

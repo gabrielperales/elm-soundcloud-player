@@ -52,6 +52,9 @@ css =
         , class Avatar
             [ display none
             ]
+        , class PlayButton
+            [ display none
+            ]
         , tablet
             [ class Container
                 [ backgroundColor colors.white
@@ -78,6 +81,7 @@ css =
                 , width <| px 24
                 , height <| px 24
                 , backgroundSize cover
+                , backgroundRepeat noRepeat
                 , borderRadius <| pct 50
                 , flexShrink zero
                 , marginRight <| px 10
