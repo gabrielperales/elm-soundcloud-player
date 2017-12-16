@@ -4,7 +4,7 @@ import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Navigation exposing (Location)
 import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string)
-import Data.Genre as Genre exposing (Genre)
+import Data.Genre as Genre exposing (Genre(..))
 
 
 type Route
@@ -47,6 +47,6 @@ modifyUrl =
 fromLocation : Location -> Maybe Route
 fromLocation location =
     if String.isEmpty location.hash then
-        Just Home
+        Just <| Genre House
     else
         parseHash route location

@@ -33,7 +33,7 @@ view { title, user, artwork_url, description } onclick =
                 ]
                 [ div [ class [ Style.PlayButton ], style [ ( "transition", "opacity 0.2s" ) ] ] [ i [ Attr.class "fa fa-2x fa-play" ] [] ] ]
             , div [ class [ Style.Main ] ]
-                [ div [ class [ Style.Avatar ], style [ ( "background", "url(" ++ user.avatar_url ++ ") no-repeat " ) ] ] []
+                [ div [ class [ Style.Avatar ], style [ ( "background-image", "url(" ++ user.avatar_url ++ ")" ) ] ] []
                 , div []
                     [ h4 [ class [ Style.Title ] ] [ text title ]
                     , div [ class [ Style.Username ] ] [ text user.username ]
