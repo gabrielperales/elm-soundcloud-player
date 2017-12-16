@@ -39,7 +39,7 @@ main =
 
 type alias Model =
     { query : String
-    , genre : Genre
+    , genre : Maybe Genre
     , songs : List Song
     , current_song : Maybe Song
     , is_playing : Bool
@@ -61,7 +61,7 @@ loadMore dir =
 initialModel : Model
 initialModel =
     { query = ""
-    , genre = House
+    , genre = Nothing
     , songs = []
     , current_song = Nothing
     , is_playing = False
@@ -126,7 +126,7 @@ update msg model =
         SetRoute maybeRoute ->
             case maybeRoute of
                 Just (Route.Genre genre) ->
-                    { model | genre = genre }
+                    { model | genre = Just genre }
                         |> update Search
 
                 _ ->
