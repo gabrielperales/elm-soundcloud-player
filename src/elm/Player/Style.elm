@@ -35,7 +35,8 @@ css =
         , class PlayerButtons
             [ displayFlex
             , justifyContent spaceBetween
-            , marginRight <| px 10
+            , marginLeft <| px 15
+            , marginRight <| px 15
             , color <| hex "ddd"
             , width <| px 70
             , children
