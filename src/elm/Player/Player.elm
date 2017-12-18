@@ -75,17 +75,38 @@ play =
     Play
 
 
+formatTime : Time -> String
+formatTime time =
+    [ Time.inMinutes time, Time.inSeconds time ]
+        |> List.map ((String.padLeft 2 '0') << toString << (flip (%) 60) << truncate)
+        |> String.join ":"
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Play song ->
-            { model | song = Just song, is_playing = True } ! [ playSong (Maybe.withDefault "" song.stream_url ++ "?client_id=" ++ getClientId model.client_id) ]
+            let
+                elapsed_time =
+                    if Just song == model.song then
+                        model.elapsed_time
+                    else
+                        0
+            in
+                { model | song = Just song, is_playing = True, elapsed_time = elapsed_time }
+                    ! [ playSong (Maybe.withDefault "" song.stream_url ++ "?client_id=" ++ getClientId model.client_id) ]
 
         Pause ->
             { model | is_playing = False } ! [ pauseSong () ]
 
+        Stop ->
+            { model | song = Nothing, is_playing = False, elapsed_time = 0 } ! [ stopSong () ]
+
         LoadPlaylist playlist ->
             { model | playlist = playlist } ! []
+
+        Seek time ->
+            { model | elapsed_time = time } ! [ seekSong time ]
 
         Tick ->
             let
@@ -131,15 +152,16 @@ view { song, is_playing, elapsed_time } =
                     [ div [ globalClass [ Global.Maxwidth, Global.AlignItemsCenter ] ]
                         [ div [ class [ Style.Player ] ]
                             [ div [ class [ Style.SongArtwork ], style [ ( "background-image", "url(" ++ Maybe.withDefault "assets/elm_logo.png" artwork_url ++ ")" ) ] ] []
+                            , div []
+                                [ div [ class [ Style.SongTitle ] ] [ text title ]
+                                , div [ class [ Style.Author ] ] [ text username ]
+                                ]
                             , div [ class [ Style.PlayerButtons ] ]
                                 [ i [ Attr.class "fa fa-caret-left", onClick PlayPrev ] []
                                 , playPauseBtn
                                 , i [ Attr.class "fa fa-caret-right", onClick PlayNext ] []
                                 ]
-                            , div []
-                                [ div [ class [ Style.SongTitle ] ] [ text title ]
-                                , div [ class [ Style.Author ] ] [ text username ]
-                                ]
+                            , div [ class [ Style.Time ] ] [ text <| formatTime elapsed_time ++ " / " ++ formatTime song.duration ]
                             ]
                         ]
                     ]
