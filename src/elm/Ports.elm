@@ -6,10 +6,10 @@ import Time exposing (Time)
 port playSong : String -> Cmd msg
 
 
-port pauseSong : String -> Cmd msg
+port pauseSong : () -> Cmd msg
 
 
-port stopSong : String -> Cmd msg
+port stopSong : () -> Cmd msg
 
 
 port seekSong : Time -> Cmd msg

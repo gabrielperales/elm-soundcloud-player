@@ -1,4 +1,4 @@
-module Views.PlayerStyle exposing (css, Class(..))
+module Player.Style exposing (css, Class(..))
 
 import Css exposing (..)
 import Css.Elements exposing (i)
