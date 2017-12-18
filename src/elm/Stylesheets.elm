@@ -5,8 +5,8 @@ import Style.Global as Global
 import Views.HeaderStyle as HeaderStyle
 import Views.SongStyle as SongStyle
 import Views.SongListStyle as SongListStyle
-import Views.PlayerStyle as PlayerStyle
 import Views.ToastStyle as ToastStyle
+import Player.Style as PlayerStyle
 
 
 port files : CssFileStructure -> Cmd msg

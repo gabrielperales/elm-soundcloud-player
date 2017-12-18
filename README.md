@@ -1,8 +1,11 @@
 # Elm SoundCloud player
 
+![Elm SoundCloud player screenshot](.images/screenshot.png)
+
 ## What?
 
 An example app done in Elm for learning Elm and Elm ports.
+This project is based on https://soundredux.io from [@andrewngu](https://github.com/andrewngu).
 
 ## Why ?
 

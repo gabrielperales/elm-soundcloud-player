@@ -1,4 +1,4 @@
-module Views.PlayerStyle exposing (css, Class(..))
+module Player.Style exposing (css, Class(..))
 
 import Css exposing (..)
 import Css.Elements exposing (i)
@@ -11,6 +11,7 @@ type Class
     | PlayerButtons
     | SongTitle
     | SongArtwork
+    | Time
     | Author
 
 
@@ -28,6 +29,7 @@ css =
             [ displayFlex
             , alignItems center
             , height <| pct 100
+            , color <| hex "aaa"
             ]
         , class PlayerButtons
             [ displayFlex
@@ -44,10 +46,13 @@ css =
                 ]
             ]
         , class SongTitle
-            [ color <| hex "aaa"
-            , fontSize <| em 0.7
-            , minWidth <| px 300
+            [ fontSize <| em 0.7
+            , width <| px 150
+            , overflow hidden
+            , textOverflow ellipsis
+            , whiteSpace noWrap
             ]
+        , class Time [ fontSize <| em 0.7 ]
         , class SongArtwork
             [ width <| px 48
             , height <| px 48
