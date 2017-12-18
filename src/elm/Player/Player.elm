@@ -11,15 +11,16 @@ module Player.Player
         )
 
 import Data.Song as Song exposing (Song)
-import Html exposing (Html, div, img, text, button, p, i)
+import Html exposing (Html, div, img, text, button, p, i, input)
 import Html.Attributes as Attr exposing (class, src, style)
 import Html.CssHelpers as CssHelpers
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, on)
 import Maybe
+import Player.Event exposing (onChange)
+import Player.Style as Style
 import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
 import Style.Global as Global exposing (globalClass)
 import Time exposing (Time, every, second)
-import Player.Style as Style
 
 
 { class } =
@@ -127,7 +128,7 @@ subscriptions model =
             every second <| always Tick
           else
             Sub.none
-        , endSong (always PlayNext)
+        , endSong (always Stop)
         ]
 
 
@@ -162,6 +163,7 @@ view { song, is_playing, elapsed_time } =
                                 , i [ Attr.class "fa fa-caret-right", onClick PlayNext ] []
                                 ]
                             , div [ class [ Style.Time ] ] [ text <| formatTime elapsed_time ++ " / " ++ formatTime song.duration ]
+                            , input [ class [ Style.Slider ], Attr.type_ "range", Attr.value <| toString elapsed_time, Attr.max <| toString song.duration, onChange Seek ] []
                             ]
                         ]
                     ]

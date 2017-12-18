@@ -11,6 +11,7 @@ type Class
     | PlayerButtons
     | SongTitle
     | SongArtwork
+    | Slider
     | Time
     | Author
 
@@ -63,5 +64,10 @@ css =
             [ color <| hex "3381b7"
             , marginTop <| px 2
             , fontSize <| em 0.6
+            ]
+        , class Slider
+            [ marginLeft <| px 15
+            , marginRight <| px 15
+            , width <| px 160
             ]
         ]
