@@ -16,6 +16,7 @@ type Class
     | Genres
     | Genre
     | CurrentGenre
+    | IsOpen
 
 
 css : Stylesheet
@@ -59,9 +60,16 @@ css =
         , class GenresNav
             [ backgroundColor <| rgb 255 255 255
             , borderBottom3 (px 1) solid (hex "dddddd")
+            , withClass IsOpen
+                [ descendants
+                    [ class Genre
+                        [ displayFlex
+                        ]
+                    ]
+                ]
             ]
         , class Genre
-            [ displayFlex
+            [ display none
             , justifyContent center
             , color inherit
             , textDecoration none
@@ -69,6 +77,7 @@ css =
             , cursor pointer
             , borderLeft2 (px 1) solid
             , borderColor <| hex "dddddd"
+            , borderBottom3 (px 1) solid (hex "dddddd")
             , fontSize <| em 0.6
             , height <| px 30
             , width <| pct 100
@@ -78,10 +87,16 @@ css =
             , hover
                 [ color <| hex "666666"
                 ]
+            , withClass CurrentGenre
+                [ displayFlex ]
             ]
         , class Genres
             [ color <| hex "adadad"
             , textTransform uppercase
+            , position absolute
+            , left zero
+            , right zero
+            , backgroundColor <| hex "FFFFFF"
             ]
         , desktop
             [ class HeaderContainer
@@ -89,13 +104,15 @@ css =
                 , paddingRight zero
                 ]
             , class Genre
-                [ borderBottom3 (px 2) solid transparent
+                [ displayFlex
+                , borderBottom3 (px 2) solid transparent
                 , withClass CurrentGenre
                     [ borderBottom3 (px 2) solid (hex "7ec57c")
                     ]
                 ]
             , class Genres
                 [ displayFlex
+                , position relative
                 , justifyContent spaceAround
                 ]
             ]

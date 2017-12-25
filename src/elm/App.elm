@@ -47,6 +47,7 @@ type alias Model =
     , infiniteScroll : IS.Model Msg
     , next_href : Maybe String
     , player : Player.Model
+    , isMenuOpen : Bool
     }
 
 
@@ -68,6 +69,7 @@ configurePlayer client_id =
     , infiniteScroll = IS.init loadMore
     , next_href = Nothing
     , player = Player.configurePlayer <| Player.setClientId client_id
+    , isMenuOpen = False
     }
 
 
@@ -81,9 +83,9 @@ init { client_id } location =
 
 
 view : Model -> Html Msg
-view { player, genre, songs, current_song, toasties, infiniteScroll } =
+view { player, genre, songs, current_song, toasties, isMenuOpen, infiniteScroll } =
     div [ IS.infiniteScroll InfiniteScrollMsg, style [ ( "height", "100vh" ), ( "overflow", "scroll" ) ] ]
-        [ HeaderView.view genre UpdateSearchInput Search
+        [ HeaderView.view genre isMenuOpen UpdateSearchInput ToggleMenu Search
         , Main.view [ SongList.view songs (PlayerMsg << Player.play) ]
         , Html.map PlayerMsg (Player.view player)
         , Toast.view ToastMsg toasties
@@ -108,6 +110,7 @@ type Msg
     | SetRoute (Maybe Route)
     | SongList (Result Http.Error Collection)
     | ToastMsg (Toast.Msg Toast)
+    | ToggleMenu
     | UpdateSearchInput String
 
 
@@ -209,6 +212,9 @@ update msg model =
 
         ToastMsg toastmsg ->
             Toast.update ToastMsg toastmsg model
+
+        ToggleMenu ->
+            { model | isMenuOpen = not model.isMenuOpen } ! []
 
         UpdateSearchInput input ->
             ( { model | query = input }, Cmd.none )
