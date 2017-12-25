@@ -14,43 +14,50 @@ import Route exposing (Route(..), href)
     CssHelpers.withNamespace "header"
 
 
-view : Maybe Genre -> (String -> msg) -> msg -> Html msg
-view currentGenre changeSearch submit =
-    div [ class [ Style.HeaderContainer ] ]
-        [ div
-            [ globalClass
-                [ Global.Flex
-                , Global.JustifySpaceBetween
-                , Global.AlignItemsCenter
-                , Global.Maxwidth
-                , Global.DirectionRow
-                , Global.H100
-                ]
-            ]
-            [ a [ href Home, class [ Style.Logo ] ] [ img [ src "assets/elm_logo.png" ] [], text "sound-elm" ]
-            , div [ class [ Style.SearchField ] ]
-                [ form [ onSubmit submit ]
-                    [ node "i" [ Attr.class "fa fa-search" ] []
-                    , input [ type_ "text", class [ Style.SearchFieldInput ], onInput changeSearch ] []
+view : Maybe Genre -> Bool -> (String -> msg) -> msg -> msg -> Html msg
+view currentGenre isMenuOpen changeSearch toggleMenu submit =
+    let
+        navClasses =
+            if isMenuOpen then
+                [ Style.GenresNav, Style.IsOpen ]
+            else
+                [ Style.GenresNav ]
+    in
+        div [ class [ Style.HeaderContainer ] ]
+            [ div
+                [ globalClass
+                    [ Global.Flex
+                    , Global.JustifySpaceBetween
+                    , Global.AlignItemsCenter
+                    , Global.Maxwidth
+                    , Global.DirectionRow
+                    , Global.H100
                     ]
                 ]
-            ]
-        , div [ class [ Style.GenresNav ] ]
-            [ div [ class [ Style.Genres ], globalClass [ Global.Maxwidth ] ]
-                (List.map
-                    (\genre ->
-                        let
-                            classes =
-                                [ Style.Genre ]
-                                    ++ if Just genre == currentGenre then
-                                        [ Style.CurrentGenre ]
-                                       else
-                                        []
-                        in
-                            a [ class classes, style [ ( "transition", "all .5s" ) ], href <| Genre genre ]
-                                [ text <| Genre.genreToString genre ]
+                [ a [ href Home, class [ Style.Logo ] ] [ img [ src "assets/elm_logo.png" ] [], text "sound-elm" ]
+                , div [ class [ Style.SearchField ] ]
+                    [ form [ onSubmit submit ]
+                        [ node "i" [ Attr.class "fa fa-search" ] []
+                        , input [ type_ "text", class [ Style.SearchFieldInput ], onInput changeSearch ] []
+                        ]
+                    ]
+                ]
+            , div [ class navClasses, onClick toggleMenu ]
+                [ div [ class [ Style.Genres ], globalClass [ Global.Maxwidth ] ]
+                    (List.map
+                        (\genre ->
+                            let
+                                classes =
+                                    [ Style.Genre ]
+                                        ++ if Just genre == currentGenre then
+                                            [ Style.CurrentGenre ]
+                                           else
+                                            []
+                            in
+                                a [ class classes, style [ ( "transition", "all .5s" ) ], href <| Genre genre ]
+                                    [ text <| Genre.genreToString genre ]
+                        )
+                        [ House, Chill, Deep, Dubstep, Progressive, Tech, Trance, Tropical ]
                     )
-                    [ House, Chill, Deep, Dubstep, Progressive, Tech, Trance, Tropical ]
-                )
+                ]
             ]
-        ]
