@@ -1,5 +1,7 @@
 # Elm SoundCloud player
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/gabrielperales/elm-soundcloud-player.svg)](https://greenkeeper.io/)
+
 ![Elm SoundCloud player screenshot](.images/screenshot.png)
 
 ## What?
