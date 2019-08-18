@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^6.0.0",
+    "dotenv": "^8.1.0",
     "elm": "^0.18.0",
     "elm-webpack-loader": "^4.2.0",
     "webpack": "^4.6.0"
