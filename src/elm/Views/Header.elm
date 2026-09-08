@@ -1,63 +1,48 @@
 module Views.Header exposing (view)
 
 import Html exposing (Html, node, div, a, img, text, form, input)
-import Html.Attributes as Attr exposing (type_, src, style)
+import Html.Attributes as Attr exposing (type_, src, style, class, classList)
 import Html.Events exposing (onClick, onSubmit, onInput)
-import Html.CssHelpers as CssHelpers
-import Style.Global as Global exposing (globalClass)
-import Views.HeaderStyle as Style
 import Data.Genre as Genre exposing (Genre(..))
 import Route exposing (Route(..), href)
-
-
-{ class } =
-    CssHelpers.withNamespace "header"
 
 
 view : Maybe Genre -> Bool -> (String -> msg) -> msg -> msg -> Html msg
 view currentGenre isMenuOpen changeSearch toggleMenu submit =
     let
-        navClasses =
+        navClass =
             if isMenuOpen then
-                [ Style.GenresNav, Style.IsOpen ]
+                "header-genres-nav is-open"
+
             else
-                [ Style.GenresNav ]
+                "header-genres-nav"
     in
-        div [ class [ Style.HeaderContainer ] ]
-            [ div
-                [ globalClass
-                    [ Global.Flex
-                    , Global.JustifySpaceBetween
-                    , Global.AlignItemsCenter
-                    , Global.Maxwidth
-                    , Global.DirectionRow
-                    , Global.H100
+    div [ class "header-container" ]
+        [ div
+            [ class "global-flex global-justify-space-between global-align-items-center global-maxwidth global-direction-row global-h100" ]
+            [ a [ href Home, class "header-logo" ] [ img [ src "assets/elm_logo.png" ] [], text "sound-elm" ]
+            , div [ class "header-search-field" ]
+                [ form [ onSubmit submit ]
+                    [ node "i" [ Attr.class "fa fa-search" ] []
+                    , input [ type_ "text", class "header-search-field-input", onInput changeSearch ] []
                     ]
-                ]
-                [ a [ href Home, class [ Style.Logo ] ] [ img [ src "assets/elm_logo.png" ] [], text "sound-elm" ]
-                , div [ class [ Style.SearchField ] ]
-                    [ form [ onSubmit submit ]
-                        [ node "i" [ Attr.class "fa fa-search" ] []
-                        , input [ type_ "text", class [ Style.SearchFieldInput ], onInput changeSearch ] []
-                        ]
-                    ]
-                ]
-            , div [ class navClasses, onClick toggleMenu ]
-                [ div [ class [ Style.Genres ], globalClass [ Global.Maxwidth ] ]
-                    (List.map
-                        (\genre ->
-                            let
-                                classes =
-                                    [ Style.Genre ]
-                                        ++ if Just genre == currentGenre then
-                                            [ Style.CurrentGenre ]
-                                           else
-                                            []
-                            in
-                                a [ class classes, style [ ( "transition", "all .5s" ) ], href <| Genre genre ]
-                                    [ text <| Genre.genreToString genre ]
-                        )
-                        [ House, Chill, Deep, Dubstep, Progressive, Tech, Trance, Tropical ]
-                    )
                 ]
             ]
+        , div [ class navClass, onClick toggleMenu ]
+            [ div [ class "header-genres global-maxwidth" ]
+                (List.map
+                    (\genre ->
+                        let
+                            genreClass =
+                                classList
+                                    [ ( "header-genre", True )
+                                    , ( "header-current-genre", Just genre == currentGenre )
+                                    ]
+                        in
+                        a [ genreClass, href <| Genre genre ]
+                            [ text <| Genre.genreToString genre ]
+                    )
+                    [ House, Chill, Deep, Dubstep, Progressive, Tech, Trance, Tropical ]
+                )
+            ]
+        ]

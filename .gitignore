@@ -1,6 +1,5 @@
 elm-stuff
 node_modules
 .DS_Store
-bundle.js
+js/
 .env
-style.css

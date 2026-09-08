@@ -1,30 +1,22 @@
-module Player.Player
-    exposing
-        ( Model
-        , Msg
-        , configurePlayer
-        , play
-        , setClientId
-        , subscriptions
-        , update
-        , view
-        )
+module Player.Player exposing
+    ( Model
+    , Msg
+    , configurePlayer
+    , play
+    , setClientId
+    , subscriptions
+    , update
+    , view
+    )
 
 import Data.Song as Song exposing (Song)
 import Html exposing (Html, div, img, text, button, p, i, input)
 import Html.Attributes as Attr exposing (class, src, style)
-import Html.CssHelpers as CssHelpers
 import Html.Events exposing (onClick, on)
 import Maybe
 import Player.Event exposing (onChange)
-import Player.Style as Style
 import Ports exposing (playSong, pauseSong, stopSong, seekSong, endSong)
-import Style.Global as Global exposing (globalClass)
-import Time exposing (Time, every, second)
-
-
-{ class } =
-    CssHelpers.withNamespace "player"
+import Time
 
 
 type Msg
@@ -34,7 +26,7 @@ type Msg
     | LoadPlaylist (List Song)
     | Pause
     | Stop
-    | Seek Time
+    | Seek Float
     | Tick
 
 
@@ -44,7 +36,7 @@ type ClientId
 
 type alias Model =
     { is_playing : Bool
-    , elapsed_time : Time
+    , elapsed_time : Float
     , playlist : List Song
     , client_id : ClientId
     , song : Maybe Song
@@ -76,11 +68,24 @@ play =
     Play
 
 
-formatTime : Time -> String
+padTime : Int -> String
+padTime n =
+    String.padLeft 2 '0' (String.fromInt n)
+
+
+formatTime : Float -> String
 formatTime time =
-    [ Time.inMinutes time, Time.inSeconds time ]
-        |> List.map ((String.padLeft 2 '0') << toString << (flip (%) 60) << truncate)
-        |> String.join ":"
+    let
+        totalSeconds =
+            truncate (time / 1000)
+
+        minutes =
+            totalSeconds // 60
+
+        seconds =
+            modBy 60 totalSeconds
+    in
+    padTime minutes ++ ":" ++ padTime seconds
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -91,41 +96,39 @@ update msg model =
                 elapsed_time =
                     if Just song == model.song then
                         model.elapsed_time
+
                     else
                         0
             in
-                { model | song = Just song, is_playing = True, elapsed_time = elapsed_time }
-                    ! [ playSong (Maybe.withDefault "" song.stream_url ++ "?client_id=" ++ getClientId model.client_id) ]
+            ( { model | song = Just song, is_playing = True, elapsed_time = elapsed_time }
+            , playSong (Maybe.withDefault "" song.stream_url ++ "?client_id=" ++ getClientId model.client_id)
+            )
 
         Pause ->
-            { model | is_playing = False } ! [ pauseSong () ]
+            ( { model | is_playing = False }, pauseSong () )
 
         Stop ->
-            { model | song = Nothing, is_playing = False, elapsed_time = 0 } ! [ stopSong () ]
+            ( { model | song = Nothing, is_playing = False, elapsed_time = 0 }, stopSong () )
 
         LoadPlaylist playlist ->
-            { model | playlist = playlist } ! []
+            ( { model | playlist = playlist }, Cmd.none )
 
         Seek time ->
-            { model | elapsed_time = time } ! [ seekSong time ]
+            ( { model | elapsed_time = time }, seekSong time )
 
         Tick ->
-            let
-                elapsed_time : Time
-                elapsed_time =
-                    ((+) second) model.elapsed_time
-            in
-                { model | elapsed_time = elapsed_time } ! []
+            ( { model | elapsed_time = model.elapsed_time + 1000 }, Cmd.none )
 
         _ ->
-            model ! []
+            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ if (model.is_playing) then
-            every second <| always Tick
+        [ if model.is_playing then
+            Time.every 1000 (always Tick)
+
           else
             Sub.none
         , endSong (always Stop)
@@ -135,10 +138,10 @@ subscriptions model =
 view : Model -> Html Msg
 view { song, is_playing, elapsed_time } =
     case song of
-        Just song ->
+        Just currentSong ->
             let
                 { title, artwork_url, user } =
-                    song
+                    currentSong
 
                 { username } =
                     user
@@ -146,27 +149,35 @@ view { song, is_playing, elapsed_time } =
                 playPauseBtn =
                     if is_playing then
                         i [ Attr.class "fa fa-pause", onClick Pause ] []
+
                     else
-                        i [ Attr.class "fa fa-play", onClick <| Play song ] []
+                        i [ Attr.class "fa fa-play", onClick <| Play currentSong ] []
             in
-                div [ class [ Style.Container ] ]
-                    [ div [ globalClass [ Global.Maxwidth, Global.AlignItemsCenter ] ]
-                        [ div [ class [ Style.Player ] ]
-                            [ div [ class [ Style.SongArtwork ], style [ ( "background-image", "url(" ++ Maybe.withDefault "assets/elm_logo.png" artwork_url ++ ")" ) ] ] []
-                            , div []
-                                [ div [ class [ Style.SongTitle ] ] [ text title ]
-                                , div [ class [ Style.Author ] ] [ text username ]
-                                ]
-                            , div [ class [ Style.PlayerButtons ] ]
-                                [ i [ Attr.class "fa fa-caret-left", onClick PlayPrev ] []
-                                , playPauseBtn
-                                , i [ Attr.class "fa fa-caret-right", onClick PlayNext ] []
-                                ]
-                            , div [ class [ Style.Time ] ] [ text <| formatTime elapsed_time ++ " / " ++ formatTime song.duration ]
-                            , input [ class [ Style.Slider ], Attr.type_ "range", Attr.value <| toString elapsed_time, Attr.max <| toString song.duration, onChange Seek ] []
+            div [ class "player-container" ]
+                [ div [ class "global-maxwidth global-align-items-center" ]
+                    [ div [ class "player-player" ]
+                        [ div [ class "player-song-artwork", style "background-image" ("url(" ++ Maybe.withDefault "assets/elm_logo.png" artwork_url ++ ")") ] []
+                        , div []
+                            [ div [ class "player-song-title" ] [ text title ]
+                            , div [ class "player-author" ] [ text username ]
                             ]
+                        , div [ class "player-player-buttons" ]
+                            [ i [ Attr.class "fa fa-caret-left", onClick PlayPrev ] []
+                            , playPauseBtn
+                            , i [ Attr.class "fa fa-caret-right", onClick PlayNext ] []
+                            ]
+                        , div [ class "player-time" ] [ text <| formatTime elapsed_time ++ " / " ++ formatTime currentSong.duration ]
+                        , input
+                            [ class "player-slider"
+                            , Attr.type_ "range"
+                            , Attr.value <| String.fromFloat elapsed_time
+                            , Attr.max <| String.fromFloat currentSong.duration
+                            , onChange Seek
+                            ]
+                            []
                         ]
                     ]
+                ]
 
         Nothing ->
             text ""

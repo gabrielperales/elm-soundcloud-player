@@ -1,6 +1,6 @@
 module Data.Genre exposing (Genre(..), genreToString, genreParser)
 
-import UrlParser
+import Url.Parser
 
 
 type Genre
@@ -15,8 +15,31 @@ type Genre
 
 
 genreToString : Genre -> String
-genreToString =
-    String.toLower << toString
+genreToString genre =
+    case genre of
+        House ->
+            "house"
+
+        Chill ->
+            "chill"
+
+        Deep ->
+            "deep"
+
+        Dubstep ->
+            "dubstep"
+
+        Progressive ->
+            "progressive"
+
+        Tech ->
+            "tech"
+
+        Trance ->
+            "trance"
+
+        Tropical ->
+            "tropical"
 
 
 fromString : String -> Maybe Genre
@@ -50,6 +73,6 @@ fromString string =
             Nothing
 
 
-genreParser : UrlParser.Parser (Genre -> a) a
+genreParser : Url.Parser.Parser (Genre -> a) a
 genreParser =
-    UrlParser.custom "GENRE" (Result.fromMaybe "error parsing genre" << fromString)
+    Url.Parser.custom "GENRE" fromString

@@ -16,8 +16,7 @@ type alias User =
 
 decoder : Decoder User
 decoder =
-    (Decode.map3 User
+    Decode.map3 User
         (field "id" int)
         (field "username" string)
         (field "avatar_url" string)
-    )

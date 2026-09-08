@@ -1,10 +1,11 @@
 require('dotenv').config();
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-  entry: ['./src/elm/Stylesheets.elm', './src/main.js'],
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  devtool: 'source-map',
+  entry: './src/main.js',
   output: {
     filename: 'js/bundle.js',
   },
@@ -16,9 +17,8 @@ module.exports = {
     rules: [
       {
         test: /\.elm$/,
-        exclude: [/elm-stuff/, /node_modules/, /Stylesheets\.elm$/],
+        exclude: [/elm-stuff/, /node_modules/],
         use: [
-          'elm-hot-loader',
           {
             loader: 'elm-webpack-loader',
             options: {
@@ -27,17 +27,7 @@ module.exports = {
           },
         ],
       },
-      {
-        test: /Stylesheets\.elm$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'elm-css-webpack-loader'],
-        })
-      },
     ],
   },
-  plugins: [
-    new webpack.EnvironmentPlugin(['SOUNDCLOUD_CLIENT_ID']),
-    new ExtractTextPlugin('style.css'),
-  ],
+  plugins: [new webpack.EnvironmentPlugin(['SOUNDCLOUD_CLIENT_ID'])],
 };

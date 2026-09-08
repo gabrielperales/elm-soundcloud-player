@@ -4,20 +4,18 @@ import Data.Song as Song exposing (Song)
 import Html exposing (Html, div, a, img, h4, p, text, i)
 import Html.Attributes as Attr exposing (class, src, href, style)
 import Html.Events exposing (onClick)
-import Html.CssHelpers as CssHelpers
-import Regex exposing (HowMany(..), replace, regex)
-import Views.SongStyle as Style
-import Style.Global as Global exposing (globalClass)
+import Regex exposing (Regex)
 import Maybe
 
 
-{ class } =
-    CssHelpers.withNamespace "song"
+largeArtworkRegex : Regex
+largeArtworkRegex =
+    Maybe.withDefault Regex.never (Regex.fromString "-large\\.jpg$")
 
 
 replaceSize : Maybe String -> Maybe String
 replaceSize =
-    Maybe.map <| replace (AtMost 1) (regex "-large.jpg$") (\_ -> "-t300x300.jpg")
+    Maybe.map <| Regex.replace largeArtworkRegex (\_ -> "-t300x300.jpg")
 
 
 view : Song -> msg -> Html msg
@@ -26,17 +24,18 @@ view { title, user, artwork_url, description } onclick =
         artwork =
             Maybe.withDefault "assets/elm_logo.png" (replaceSize artwork_url)
     in
-        div [ class [ Style.Container ], globalClass [ Global.Flex, Global.DirectionRow ], onClick onclick ]
-            [ div
-                [ class [ Style.Image ]
-                , style [ ( "background", "url(" ++ artwork ++ ") no-repeat 50%" ), ( "background-size", "cover" ) ]
-                ]
-                [ div [ class [ Style.PlayButton ], style [ ( "transition", "opacity 0.2s" ) ] ] [ i [ Attr.class "fa fa-2x fa-play" ] [] ] ]
-            , div [ class [ Style.Main ] ]
-                [ div [ class [ Style.Avatar ], style [ ( "background-image", "url(" ++ user.avatar_url ++ ")" ) ] ] []
-                , div []
-                    [ h4 [ class [ Style.Title ] ] [ text title ]
-                    , div [ class [ Style.Username ] ] [ text user.username ]
-                    ]
+    div [ class "song-container global-flex global-direction-row", onClick onclick ]
+        [ div
+            [ class "song-image"
+            , style "background" ("url(" ++ artwork ++ ") no-repeat 50%")
+            , style "background-size" "cover"
+            ]
+            [ div [ class "song-play-button", style "transition" "opacity 0.2s" ] [ i [ Attr.class "fa fa-2x fa-play" ] [] ] ]
+        , div [ class "song-main" ]
+            [ div [ class "song-avatar", style "background-image" ("url(" ++ user.avatar_url ++ ")") ] []
+            , div []
+                [ h4 [ class "song-title" ] [ text title ]
+                , div [ class "song-username" ] [ text user.username ]
                 ]
             ]
+        ]

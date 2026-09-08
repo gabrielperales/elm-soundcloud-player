@@ -1,7 +1,6 @@
 module Data.Song exposing (Song, decoder)
 
 import Data.User as User exposing (User)
-import Time exposing (Time)
 import Json.Decode as Decode exposing (Decoder, field, int, string, float, oneOf, null)
 
 
@@ -10,7 +9,7 @@ type alias Song =
     , user : User
     , title : String
     , artwork_url : Maybe String
-    , duration : Time
+    , duration : Float
     , stream_url : Maybe String
     , description : Maybe String
     , genre : Maybe String
@@ -23,7 +22,7 @@ type alias Song =
 
 decoder : Decoder Song
 decoder =
-    (Decode.map8 Song
+    Decode.map8 Song
         (field "id" int)
         (field "user" User.decoder)
         (field "title" string)
@@ -32,4 +31,3 @@ decoder =
         (field "stream_url" (oneOf [ Decode.map Just string, null Nothing ]))
         (field "description" (oneOf [ Decode.map Just string, null Nothing ]))
         (field "genre" (oneOf [ Decode.map Just string, null Nothing ]))
-    )

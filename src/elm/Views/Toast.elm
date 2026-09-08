@@ -1,20 +1,19 @@
-module Views.Toast
-    exposing
-        ( initialState
-        , view
-        , update
-        , addToast
-        , Stack
-        , Toast
-        , Msg
-        , success
-        , warning
-        , error
-        )
+module Views.Toast exposing
+    ( initialState
+    , view
+    , update
+    , addToast
+    , Stack
+    , Toast
+    , Msg
+    , success
+    , warning
+    , error
+    )
 
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
-import Toasty exposing (Msg(..))
+import Toasty
 import Toasty.Defaults as Defaults exposing (Toast(..))
 
 
@@ -22,17 +21,15 @@ config : Toasty.Config msg
 config =
     Defaults.config
         |> Toasty.containerAttrs
-            [ style
-                [ ( "position", "fixed" )
-                , ( "z-index", "99999" )
-                , ( "top", "0" )
-                , ( "right", "0" )
-                , ( "width", "100%" )
-                , ( "max-width", "300px" )
-                , ( "list-style-type", "none" )
-                , ( "padding", "0" )
-                , ( "margin", "0" )
-                ]
+            [ style "position" "fixed"
+            , style "z-index" "99999"
+            , style "top" "0"
+            , style "right" "0"
+            , style "width" "100%"
+            , style "max-width" "300px"
+            , style "list-style-type" "none"
+            , style "padding" "0"
+            , style "margin" "0"
             ]
 
 

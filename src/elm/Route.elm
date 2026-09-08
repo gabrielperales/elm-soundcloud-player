@@ -1,9 +1,9 @@
-module Route exposing (Route(..), fromLocation, href)
+module Route exposing (Route(..), fromUrl, href)
 
 import Html exposing (Attribute)
 import Html.Attributes as Attr
-import Navigation exposing (Location)
-import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string)
+import Url exposing (Url)
+import Url.Parser as UrlParser exposing ((</>), Parser, oneOf, s)
 import Data.Genre as Genre exposing (Genre(..))
 
 
@@ -15,8 +15,8 @@ type Route
 route : Parser (Route -> a) a
 route =
     oneOf
-        [ Url.map Home (s "")
-        , Url.map Genre (s "genre" </> Genre.genreParser)
+        [ UrlParser.map Home UrlParser.top
+        , UrlParser.map Genre (s "genre" </> Genre.genreParser)
         ]
 
 
@@ -31,7 +31,7 @@ routeToString page =
                 Genre genre ->
                     [ "genre", Genre.genreToString genre ]
     in
-        "#/" ++ String.join "/" pieces
+    "#/" ++ String.join "/" pieces
 
 
 href : Route -> Attribute msg
@@ -39,14 +39,18 @@ href =
     Attr.href << routeToString
 
 
-modifyUrl : Route -> Cmd msg
-modifyUrl =
-    Navigation.modifyUrl << routeToString
-
-
-fromLocation : Location -> Maybe Route
-fromLocation location =
-    if String.isEmpty location.hash then
+fromUrl : Url -> Maybe Route
+fromUrl url =
+    let
+        fragment =
+            Maybe.withDefault "" url.fragment
+    in
+    if String.isEmpty fragment then
         Just <| Genre House
+
     else
-        parseHash route location
+        { url
+            | path = fragment
+            , fragment = Nothing
+        }
+            |> UrlParser.parse route

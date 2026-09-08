@@ -1,8 +1,11 @@
 'use strict';
-var Elm = require('./elm/App.elm');
+var Elm = require('./elm/App.elm').Elm;
 
-var app = Elm.App.embed(document.getElementById('app'), {
-  client_id: process.env.SOUNDCLOUD_CLIENT_ID,
+var app = Elm.App.init({
+  node: document.getElementById('app'),
+  flags: {
+    client_id: process.env.SOUNDCLOUD_CLIENT_ID,
+  },
 });
 
 var audio = new Audio();
